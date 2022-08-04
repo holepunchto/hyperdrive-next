@@ -13,7 +13,7 @@ module.exports = class HyperBundle extends EventEmitter {
       key = null
     }
     const { _checkout, _db, _files } = opts
-    this._opts = opts
+    this._options = opts
 
     this.corestore = corestore
     this.db = _db || this._makeBee(key)
@@ -68,7 +68,7 @@ module.exports = class HyperBundle extends EventEmitter {
 
   checkout (len) {
     return new HyperBundle(this.corestore, this.key, {
-      ...this._opts,
+      ...this._options,
       _checkout: this,
       _db: this.db.checkout(len),
       _files: null
@@ -77,7 +77,7 @@ module.exports = class HyperBundle extends EventEmitter {
 
   batch () {
     return new HyperBundle(this.corestore, this.key, {
-      ...this._opts,
+      ...this._options,
       _checkout: null,
       _db: this.db,
       _files: this.files.batch()
@@ -96,8 +96,8 @@ module.exports = class HyperBundle extends EventEmitter {
 
   _makeBee (key) {
     const metadataOpts = key
-      ? { ...this._opts, key, cache: true }
-      : { ...this._opts, name: 'db', cache: true }
+      ? { ...this._options, key, cache: true }
+      : { ...this._options, name: 'db', cache: true }
     const core = this.corestore.get(metadataOpts)
     const metadata = { contentFeed: null }
     return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
@@ -127,7 +127,7 @@ module.exports = class HyperBundle extends EventEmitter {
     if (!blobsKey || blobsKey.length < 32) throw new Error('Invalid or no Blob store key set')
 
     const blobsCore = this.corestore.get({
-      ...this._opts,
+      ...this._options,
       key: blobsKey,
       cache: false
     })
@@ -148,7 +148,7 @@ module.exports = class HyperBundle extends EventEmitter {
 
     if (this.db.feed.writable && !this.blobs) {
       const blobsCore = this.corestore.get({
-        ...this._opts,
+        ...this._options,
         name: 'blobs',
         cache: false
       })
