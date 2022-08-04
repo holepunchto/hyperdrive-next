@@ -14,6 +14,7 @@ module.exports = class HyperBundle extends EventEmitter {
     }
     const { _checkout, _db, _files } = opts
     this._options = opts
+    if (opts.keyPair) delete this._options.keyPair;
 
     this.corestore = corestore
     this.db = _db || this._makeBee(key)

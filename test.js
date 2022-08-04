@@ -15,8 +15,13 @@ const Hyperdrive = require('./index.js')
 
 test('pass options to both cores', async (t) => {
   const onwait = () => {}
+  const keyPair = DHT.keyPair()
   const encryptionKey = Buffer.alloc(32).fill('hello')
-  const drive = new Hyperdrive(new Corestore(ram), { onwait, encryptionKey })
+  const drive = new Hyperdrive(new Corestore(ram), {
+    onwait,
+    encryptionKey,
+    keyPair
+  })
   await drive.getBlobs()
   t.is(drive.core.onwait, onwait)
   t.is(drive.blobs.core.onwait, onwait)
