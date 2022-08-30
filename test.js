@@ -136,7 +136,7 @@ test('drive.createReadStream() with start/end options', async (t) => {
     start: 0,
     end: 0
   })
-  const drivebuf = await streamToString(stream)
+  const drivebuf = await streamToBuffer(stream)
   t.is(drivebuf.length, 1)
   t.is(drivebuf.toString(), 'm')
 
@@ -144,7 +144,7 @@ test('drive.createReadStream() with start/end options', async (t) => {
     start: 5,
     end: 7
   })
-  const drivebuf2 = await streamToString(stream2)
+  const drivebuf2 = await streamToBuffer(stream2)
   t.is(drivebuf2.length, 3)
   t.is(drivebuf2.toString(), 'e.e')
 })
@@ -642,7 +642,7 @@ function downloadShark (core) {
   return telem
 }
 
-async function streamToString (stream) {
+async function streamToBuffer (stream) {
   const chunks = []
   for await (const chunk of stream) {
     chunks.push(chunk)
