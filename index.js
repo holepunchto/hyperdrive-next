@@ -3,6 +3,8 @@ const Hyperblobs = require('hyperblobs')
 const isOptions = require('is-options')
 const { EventEmitter } = require('events')
 const { Writable, Readable } = require('streamx')
+const path = require('path')
+const unixPathResolve = require('unix-path-resolve')
 
 module.exports = class Hyperdrive extends EventEmitter {
   constructor (corestore, key, opts = {}) {
@@ -193,23 +195,28 @@ module.exports = class Hyperdrive extends EventEmitter {
   async put (name, buf, { executable = false, metadata = null } = {}) {
     await this.getBlobs()
     const id = await this.blobs.put(buf)
+    name = normalizeName(name)
     return this.files.put(name, { executable, linkname: null, blob: id, metadata })
   }
 
   async del (name) {
     if (!this.opened) await this.ready()
+    name = normalizeName(name)
     return this.files.del(name)
   }
 
   async symlink (name, dst, { metadata = null } = {}) {
     if (!this.opened) await this.ready()
+    name = normalizeName(name)
     return this.files.put(name, { executable: false, linkname: dst, blob: null, metadata })
   }
 
   entry (name) {
-    return typeof name === 'string'
-      ? this.files.get(name)
-      : Promise.resolve(name)
+    if (typeof name === 'string') {
+      name = normalizeName(name)
+      return this.files.get(name)
+    }
+    return Promise.resolve(name)
   }
 
   diff (length, folder, opts) {
@@ -461,4 +468,11 @@ function makeBee (key, corestore, onwait) {
   const core = corestore.get(metadataOpts)
   const metadata = { contentFeed: null }
   return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
+}
+
+function normalizeName (name) {
+  if (!name.startsWith('/')) {
+    return unixPathResolve(path.join('/', name))
+  }
+  return name
 }

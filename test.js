@@ -275,6 +275,41 @@ test('drive.entry(path) gets entry at path', async (t) => {
   }
 })
 
+test('key path resolve', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  const buffer = Buffer.from('hello')
+
+  await drive.put('example-1.txt', buffer)
+  await drive.symlink('example-1.shortcut', '/example-1.txt')
+  t.alike(await drive.get('/example-1.txt'), buffer)
+  t.ok(await drive.entry('/example-1.txt'))
+  await drive.del('/example-1.txt')
+  await drive.del('/example-1.shortcut')
+
+  await drive.put('/example-2.txt', buffer)
+  await drive.symlink('/example-2.shortcut', '/example-2.txt')
+  t.alike(await drive.get('../example-2.txt'), buffer)
+  t.ok(await drive.entry('../example-2.txt'))
+  t.ok(await drive.entry('../example-2.shortcut'))
+  await drive.del('../example-2.txt')
+  await drive.del('../example-2.shortcut')
+
+  await drive.put('../../../../example-3.txt', buffer)
+  await drive.symlink('../../../../example-3.shortcut', '/example-3.txt')
+  t.alike(await drive.get('/example-3.txt'), buffer)
+  t.ok(await drive.entry('/example-3.txt'))
+  t.ok(await drive.entry('/example-3.shortcut'))
+  await drive.del('/example-3.txt')
+  await drive.del('/example-3.shortcut')
+
+  t.absent(await drive.entry('/example-1.txt'))
+  t.absent(await drive.entry('/example-2.txt'))
+  t.absent(await drive.entry('/example-3.txt'))
+  t.absent(await drive.entry('/example-1.shortcut'))
+  t.absent(await drive.entry('/example-2.shortcut'))
+  t.absent(await drive.entry('/example-3.shortcut'))
+})
+
 test('drive.diff(length)', async (t) => {
   const { drive, paths: { root, tmp } } = await testenv(t.teardown)
   const paths = []
