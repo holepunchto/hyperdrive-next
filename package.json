@@ -1,6 +1,6 @@
 {
   "name": "hyperdrive",
-  "version": "11.0.0-alpha.1",
+  "version": "11.0.0-alpha.3",
   "description": "Hyperdrive is a secure, real-time distributed file system",
   "main": "index.js",
   "repository": {
@@ -18,14 +18,14 @@
   "homepage": "https://github.com/hypercore-protocol/hyperdrive-next#readme",
   "dependencies": {
     "hyperbee": "^1.10.1",
-    "hyperblobs": "next",
+    "hyperblobs": "^2.0.0",
     "is-options": "^1.0.2",
     "streamx": "^2.12.4"
   },
   "devDependencies": {
     "@hyperswarm/dht": "^6.2.0",
     "@hyperswarm/testnet": "^3.0.0",
-    "brittle": "^2.3.1",
+    "brittle": "^3.0.0",
     "corestore": "next",
     "hypercore-crypto": "^3.2.1",
     "hyperswarm": "^4.0.0",

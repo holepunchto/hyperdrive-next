@@ -4,7 +4,7 @@ const isOptions = require('is-options')
 const { EventEmitter } = require('events')
 const { Writable, Readable } = require('streamx')
 
-module.exports = class HyperBundle extends EventEmitter {
+module.exports = class Hyperdrive extends EventEmitter {
   constructor (corestore, key, opts = {}) {
     super()
 
@@ -14,7 +14,7 @@ module.exports = class HyperBundle extends EventEmitter {
     }
     const { _checkout, _db, _files } = opts
     this._options = opts
-    if (opts.keyPair) delete this._options.keyPair;
+    if (opts.keyPair) delete this._options.keyPair
 
     this.corestore = corestore
     this.db = _db || this._makeBee(key)
@@ -68,7 +68,7 @@ module.exports = class HyperBundle extends EventEmitter {
   }
 
   checkout (len) {
-    return new HyperBundle(this.corestore, this.key, {
+    return new Hyperdrive(this.corestore, this.key, {
       ...this._options,
       _checkout: this,
       _db: this.db.checkout(len),
@@ -77,7 +77,7 @@ module.exports = class HyperBundle extends EventEmitter {
   }
 
   batch () {
-    return new HyperBundle(this.corestore, this.key, {
+    return new Hyperdrive(this.corestore, this.key, {
       ...this._options,
       _checkout: null,
       _db: this.db,
@@ -294,7 +294,7 @@ module.exports = class HyperBundle extends EventEmitter {
     return shallowReadStream(this.files, folder, true)
   }
 
-  createReadStream (name) {
+  createReadStream (name, opts) {
     const self = this
 
     let destroyed = false
@@ -317,7 +317,7 @@ module.exports = class HyperBundle extends EventEmitter {
             return cb(null)
           }
 
-          rs = self.blobs.createReadStream(node.value.blob)
+          rs = self.blobs.createReadStream(node.value.blob, opts)
 
           rs.on('data', function (data) {
             if (!stream.push(data)) rs.pause()
