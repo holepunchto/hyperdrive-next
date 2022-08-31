@@ -62,18 +62,13 @@ Returns the entry at `path` in the drive. An entry holds metadata about a `path`
 
 ```js
 {
-  seq: Number,
-  key: String,
-  value: {
-    executable: Boolean, // whether the blob at path is an executable
-    linkname: null // if entry not symlink, otherwise a string to the entry this links to
-    blob: { // a Hyperblob id that can be used to fetch the blob associated with this entry
-      blockOffset: Number,
-      blockLength: Number,
-      byteOffset: Number,
-      byteLength: Number
-    },
-    metadata: null
+  executable: Boolean, // whether the blob at path is an executable
+  linkname: null // if entry not symlink, otherwise a string to the entry this links to
+  blob: { // a Hyperblob id that can be used to fetch the blob associated with this entry
+    blockOffset: Number,
+    blockLength: Number,
+    byteOffset: Number,
+    byteLength: Number
   }
 }
 ```
