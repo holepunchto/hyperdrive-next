@@ -195,22 +195,22 @@ module.exports = class Hyperdrive extends EventEmitter {
   async put (name, buf, { executable = false, metadata = null } = {}) {
     await this.getBlobs()
     const id = await this.blobs.put(buf)
-    return this.files.put(normalizeName(name), { executable, linkname: null, blob: id, metadata })
+    return this.files.put(normalizePath(name), { executable, linkname: null, blob: id, metadata })
   }
 
   async del (name) {
     if (!this.opened) await this.ready()
-    return this.files.del(normalizeName(name))
+    return this.files.del(normalizePath(name))
   }
 
   async symlink (name, dst, { metadata = null } = {}) {
     if (!this.opened) await this.ready()
-    return this.files.put(normalizeName(name), { executable: false, linkname: dst, blob: null, metadata })
+    return this.files.put(normalizePath(name), { executable: false, linkname: dst, blob: null, metadata })
   }
 
   entry (name) {
     return typeof name === 'string'
-      ? this.files.get(normalizeName(name))
+      ? this.files.get(normalizePath(name))
       : Promise.resolve(name)
   }
 
@@ -465,7 +465,7 @@ function makeBee (key, corestore, onwait) {
   return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
 }
 
-function normalizeName (name) {
+function normalizePath (name) {
   if (!name.startsWith('/')) {
     return unixPathResolve(path.join('/', name))
   }
