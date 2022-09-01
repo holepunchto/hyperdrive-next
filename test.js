@@ -337,8 +337,7 @@ test('put(key, buffer) resolve key path', async function (t) {
   const putAndEntry = async (key, expectedKey) => {
     t.absent(await drive.entry(expectedKey))
     await drive.put(key, Buffer.from(''))
-    const entry = await drive.entry(expectedKey)
-    t.is(entry.key, expectedKey)
+    t.ok(await drive.entry(expectedKey))
   }
 
   await putAndEntry('b.txt', '/b.txt')
@@ -357,9 +356,7 @@ test('symlink(key, linkname) resolve key path', async function (t) {
   const symlinkAndEntry = async (key, expectedKey) => {
     t.absent(await drive.entry(expectedKey))
     await drive.symlink(key, '/README.md')
-    const entry = await drive.entry(expectedKey)
-    t.is(entry.key, expectedKey)
-    t.ok(entry.value.linkname)
+    t.ok(await drive.entry(expectedKey))
   }
 
   await symlinkAndEntry('b.txt', '/b.txt')
