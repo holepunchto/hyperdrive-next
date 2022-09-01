@@ -275,39 +275,99 @@ test('drive.entry(path) gets entry at path', async (t) => {
   }
 })
 
-test('key path resolve', async (t) => {
+test('entry(key) resolve key path', async function (t) {
   const { drive } = await testenv(t.teardown)
-  const buffer = Buffer.from('hello')
 
-  await drive.put('example-1.txt', buffer)
-  await drive.symlink('example-1.shortcut', '/example-1.txt')
-  t.alike(await drive.get('/example-1.txt'), buffer)
-  t.ok(await drive.entry('/example-1.txt'))
-  await drive.del('/example-1.txt')
-  await drive.del('/example-1.shortcut')
+  await drive.put('/README.md', Buffer.from('# title'))
+  await drive.put('/examples/a.txt', Buffer.from('a text'))
+  await drive.put('/examples/more/c.txt', Buffer.from('c text'))
 
-  await drive.put('/example-2.txt', buffer)
-  await drive.symlink('/example-2.shortcut', '/example-2.txt')
-  t.alike(await drive.get('../example-2.txt'), buffer)
-  t.ok(await drive.entry('../example-2.txt'))
-  t.ok(await drive.entry('../example-2.shortcut'))
-  await drive.del('../example-2.txt')
-  await drive.del('../example-2.shortcut')
+  t.alike((await drive.entry('README.md')).key, '/README.md')
+  t.alike((await drive.entry('/../README.md')).key, '/README.md')
+  t.alike((await drive.entry('../README.md')).key, '/README.md')
+  t.alike((await drive.entry('../../../../README.md')).key, '/README.md')
+  t.alike((await drive.entry('/examples/more/../a.txt')).key, '/examples/a.txt')
+  t.alike((await drive.entry('\\examples\\more\\c.txt')).key, '/examples/more/c.txt')
+})
 
-  await drive.put('../../../../example-3.txt', buffer)
-  await drive.symlink('../../../../example-3.shortcut', '/example-3.txt')
-  t.alike(await drive.get('/example-3.txt'), buffer)
-  t.ok(await drive.entry('/example-3.txt'))
-  t.ok(await drive.entry('/example-3.shortcut'))
-  await drive.del('/example-3.txt')
-  await drive.del('/example-3.shortcut')
+test('get(key) resolve key path', async function (t) {
+  const { drive } = await testenv(t.teardown)
 
-  t.absent(await drive.entry('/example-1.txt'))
-  t.absent(await drive.entry('/example-2.txt'))
-  t.absent(await drive.entry('/example-3.txt'))
-  t.absent(await drive.entry('/example-1.shortcut'))
-  t.absent(await drive.entry('/example-2.shortcut'))
-  t.absent(await drive.entry('/example-3.shortcut'))
+  await drive.put('/README.md', Buffer.from('# title'))
+  await drive.put('/examples/a.txt', Buffer.from('a text'))
+  await drive.put('/examples/more/c.txt', Buffer.from('c text'))
+
+  const buffer = await drive.get('/README.md')
+  const a = await drive.get('/examples/a.txt')
+  const c = await drive.get('/examples/more/c.txt')
+  t.ok(buffer)
+  t.ok(a)
+  t.ok(c)
+
+  t.alike(await drive.get('README.md'), buffer)
+  t.alike(await drive.get('/../README.md'), buffer)
+  t.alike(await drive.get('../README.md'), buffer)
+  t.alike(await drive.get('../../../../README.md'), buffer)
+  t.alike(await drive.get('/examples/more/../a.txt'), a)
+  t.alike(await drive.get('\\examples\\more\\c.txt'), c)
+})
+
+test('del(key) resolve key path', async function (t) {
+  const { drive } = await testenv(t.teardown)
+
+  const delAndEntry = async (key, expectedKey) => {
+    await drive.put(expectedKey, Buffer.from('')) // pre-create
+
+    t.ok(await drive.entry(expectedKey))
+    await drive.del(key)
+    t.absent(await drive.entry(expectedKey))
+  }
+
+  await delAndEntry('README.md', '/README.md')
+  await delAndEntry('/../script.sh', '/script.sh')
+  await delAndEntry('../LICENSE', '/LICENSE')
+  await delAndEntry('../../../../key.secret', '/key.secret')
+  await delAndEntry('/examples/more/../a.txt', '/examples/a.txt')
+  await delAndEntry('\\examples\\more\\c.txt', '/examples/more/c.txt')
+})
+
+test('put(key, buffer) resolve key path', async function (t) {
+  const { drive } = await testenv(t.teardown)
+
+  const putAndEntry = async (key, expectedKey) => {
+    t.absent(await drive.entry(expectedKey))
+    await drive.put(key, Buffer.from(''))
+    const entry = await drive.entry(expectedKey)
+    t.is(entry.key, expectedKey)
+  }
+
+  await putAndEntry('b.txt', '/b.txt')
+  await putAndEntry('/../c.txt', '/c.txt')
+  await putAndEntry('../d.txt', '/d.txt')
+  await putAndEntry('../../../../e.txt', '/e.txt')
+  await putAndEntry('/examples/more/../f.txt', '/examples/f.txt')
+  await putAndEntry('\\examples\\more\\h.txt', '/examples/more/h.txt')
+})
+
+test('symlink(key, linkname) resolve key path', async function (t) {
+  const { drive } = await testenv(t.teardown)
+
+  await drive.put('/README.md', Buffer.from('# title'))
+
+  const symlinkAndEntry = async (key, expectedKey) => {
+    t.absent(await drive.entry(expectedKey))
+    await drive.symlink(key, '/README.md')
+    const entry = await drive.entry(expectedKey)
+    t.is(entry.key, expectedKey)
+    t.ok(entry.value.linkname)
+  }
+
+  await symlinkAndEntry('b.txt', '/b.txt')
+  await symlinkAndEntry('/../c.txt', '/c.txt')
+  await symlinkAndEntry('../d.txt', '/d.txt')
+  await symlinkAndEntry('../../../../e.txt', '/e.txt')
+  await symlinkAndEntry('/examples/more/../f.txt', '/examples/f.txt')
+  await symlinkAndEntry('\\examples\\more\\h.txt', '/examples/more/h.txt')
 })
 
 test('drive.diff(length)', async (t) => {
