@@ -466,8 +466,6 @@ function makeBee (key, corestore, onwait) {
 }
 
 function normalizePath (name) {
-  if (!name.startsWith('/')) {
-    return unixPathResolve(path.join('/', name))
-  }
-  return name
+  name = path.resolve('/', name)
+  return unixPathResolve(name)
 }
