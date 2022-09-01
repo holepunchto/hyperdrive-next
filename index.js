@@ -3,7 +3,6 @@ const Hyperblobs = require('hyperblobs')
 const isOptions = require('is-options')
 const { EventEmitter } = require('events')
 const { Writable, Readable } = require('streamx')
-const path = require('path')
 const unixPathResolve = require('unix-path-resolve')
 
 module.exports = class Hyperdrive extends EventEmitter {
@@ -466,6 +465,5 @@ function makeBee (key, corestore, onwait) {
 }
 
 function normalizePath (name) {
-  name = path.resolve('/', name)
-  return unixPathResolve(name)
+  return unixPathResolve('/', name)
 }
