@@ -265,6 +265,7 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   async download (folder, opts) {
+    folder = folder || '/'
     const dls = []
 
     for await (const entry of this.list(folder, opts)) {
@@ -283,6 +284,7 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   // atm always recursive, but we should add some depth thing to it
   list (folder, { recursive = true } = {}) {
+    folder = folder || '/'
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
     if (recursive === false) return shallowReadStream(this.files, folder, false)
     // '0' is binary +1 of /
@@ -290,6 +292,7 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   readdir (folder) {
+    folder = folder || '/'
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
     return shallowReadStream(this.files, folder, true)
   }
