@@ -13,11 +13,12 @@ module.exports = class Hyperdrive extends EventEmitter {
       opts = key
       key = null
     }
-    const { _checkout, _db, _files, onwait } = opts
-    this._onwait = onwait || null
+    const { _checkout, _db, _files } = opts
+    this._options = opts
+    if (opts.keyPair) delete this._options.keyPair
 
     this.corestore = corestore
-    this.db = _db || makeBee(key, corestore, this._onwait)
+    this.db = _db || this._makeBee(key)
     this.files = _files || this.db.sub('files')
     this.blobs = null
 
@@ -69,7 +70,7 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   checkout (len) {
     return new Hyperdrive(this.corestore, this.key, {
-      onwait: this._onwait,
+      ...this._options,
       _checkout: this,
       _db: this.db.checkout(len),
       _files: null
@@ -78,7 +79,7 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   batch () {
     return new Hyperdrive(this.corestore, this.key, {
-      onwait: this._onwait,
+      ...this._options,
       _checkout: null,
       _db: this.db,
       _files: this.files.batch()
@@ -97,8 +98,8 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   _makeBee (key) {
     const metadataOpts = key
-      ? { key, cache: true, onwait: this._onwait }
-      : { name: 'db', cache: true, onwait: this._onwait }
+      ? { ...this._options, key, cache: true }
+      : { ...this._options, name: 'db', cache: true }
     const core = this.corestore.get(metadataOpts)
     const metadata = { contentFeed: null }
     return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
@@ -128,9 +129,9 @@ module.exports = class Hyperdrive extends EventEmitter {
     if (!blobsKey || blobsKey.length < 32) throw new Error('Invalid or no Blob store key set')
 
     const blobsCore = this.corestore.get({
+      ...this._options,
       key: blobsKey,
-      cache: false,
-      onwait: this._onwait
+      cache: false
     })
     await blobsCore.ready()
 
@@ -149,9 +150,9 @@ module.exports = class Hyperdrive extends EventEmitter {
 
     if (this.db.feed.writable && !this.blobs) {
       const blobsCore = this.corestore.get({
+        ...this._options,
         name: 'blobs',
-        cache: false,
-        onwait: this._onwait
+        cache: false
       })
       await blobsCore.ready()
 
@@ -454,15 +455,6 @@ function shallowReadStream (files, folder, keys) {
 }
 
 function noop () {}
-
-function makeBee (key, corestore, onwait) {
-  const metadataOpts = key
-    ? { key, cache: true, onwait }
-    : { name: 'db', cache: true, onwait }
-  const core = corestore.get(metadataOpts)
-  const metadata = { contentFeed: null }
-  return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
-}
 
 function normalizePath (name) {
   return unixPathResolve('/', name)

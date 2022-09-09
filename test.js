@@ -13,6 +13,22 @@ const Hyperswarm = require('hyperswarm')
 
 const Hyperdrive = require('./index.js')
 
+test('pass options to both cores', async (t) => {
+  const onwait = () => {}
+  const keyPair = DHT.keyPair()
+  const encryptionKey = Buffer.alloc(32).fill('hello')
+  const drive = new Hyperdrive(new Corestore(ram), {
+    onwait,
+    encryptionKey,
+    keyPair
+  })
+  await drive.getBlobs()
+  t.is(drive.core.onwait, onwait)
+  t.is(drive.blobs.core.onwait, onwait)
+  t.is(drive.core.encryptionKey, encryptionKey)
+  t.is(drive.blobs.core.encryptionKey, encryptionKey)
+})
+
 test('drive.core', async (t) => {
   const { drive } = await testenv(t.teardown)
   t.is(drive.db.feed, drive.core)
