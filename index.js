@@ -265,6 +265,8 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   async download (folder = '/', opts) {
+    if (typeof folder === 'object') return this.download(undefined, folder)
+
     const dls = []
 
     for await (const entry of this.list(folder, opts)) {
