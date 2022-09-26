@@ -98,6 +98,12 @@ test.solo('drive.createWriteStream(path) and drive.createReadStream(path)', asyn
       drive.createWriteStream(__filename)
     )
 
+    console.log('read entry from drive')
+    console.log(await drive.entry(__filename))
+
+    console.log('read buffer from drive')
+    console.log(await drive.get(__filename))
+
     console.log('stream reading from drive')
     let bndlbuf = null
     await pipeline(
@@ -110,6 +116,8 @@ test.solo('drive.createWriteStream(path) and drive.createReadStream(path)', asyn
         }
       })
     )
+    console.log('after stream reading')
+
     t.is(Buffer.compare(diskbuf, bndlbuf), 0)
   }
 
