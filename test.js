@@ -86,27 +86,14 @@ test('drive.put(path, buf) and drive.get(path)', async (t) => {
   }
 })
 
-test.solo('drive.createWriteStream(path) and drive.createReadStream(path)', async (t) => {
+test('drive.createWriteStream(path) and drive.createReadStream(path)', async (t) => {
   {
     const { drive } = await testenv(t.teardown)
     const diskbuf = await fs.readFileSync(__filename)
-    console.log({ __filename: __filename, diskbuf })
-
-    console.log('stream writing to drive')
     await pipeline(
       fs.createReadStream(__filename),
       drive.createWriteStream(__filename)
     )
-
-    console.log('read entry from drive')
-    console.log('entry', await drive.entry(__filename))
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log('entry', await drive.entry(__filename))
-
-    console.log('read buffer from drive')
-    console.log('get', await drive.get(__filename))
-
-    console.log('stream reading from drive')
     let bndlbuf = null
     await pipeline(
       drive.createReadStream(__filename),
@@ -118,8 +105,6 @@ test.solo('drive.createWriteStream(path) and drive.createReadStream(path)', asyn
         }
       })
     )
-    console.log('after stream reading')
-
     t.is(Buffer.compare(diskbuf, bndlbuf), 0)
   }
 
@@ -129,14 +114,10 @@ test.solo('drive.createWriteStream(path) and drive.createReadStream(path)', asyn
     const dirpath = fs.mkdtempSync(tmppath)
     const filepath = path.join(dirpath, 'hello-world.js')
     const bndlbuf = Buffer.from('module.exports = () => \'Hello, World!\'')
-    console.log({ filepath, bndlbuf })
-
     await pipeline(
       Readable.from(bndlbuf),
       drive.createWriteStream(filepath)
     )
-
-    console.log('stream reading from drive (two)')
     await pipeline(
       drive.createReadStream(filepath),
       fs.createWriteStream(filepath)
