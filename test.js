@@ -99,10 +99,12 @@ test.solo('drive.createWriteStream(path) and drive.createReadStream(path)', asyn
     )
 
     console.log('read entry from drive')
-    console.log(await drive.entry(__filename))
+    console.log('entry', await drive.entry(__filename))
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log('entry', await drive.entry(__filename))
 
     console.log('read buffer from drive')
-    console.log(await drive.get(__filename))
+    console.log('get', await drive.get(__filename))
 
     console.log('stream reading from drive')
     let bndlbuf = null
