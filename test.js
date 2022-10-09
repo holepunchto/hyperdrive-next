@@ -87,6 +87,54 @@ test('Hypedrive(corestore, keychain) - writable', async (t) => {
   t.ok(drive.core.writable)
 })
 
+test('Hypedrive(corestore, keychain, { encrypted: true }) - blind downloading', async (t) => {
+  const drive = new Hyperdrive(new Corestore(ram), { encrypted: true })
+  await drive.ready()
+  t.ok(drive.encryptionKey)
+  t.alike(drive.core.encryptionKey, drive.blobs.core.encryptionKey)
+
+  const diskbuf = fs.readFileSync(__filename)
+  await drive.put(__filename, diskbuf)
+  const bndlbuf = await drive.get(__filename)
+  t.is(b4a.compare(diskbuf, bndlbuf), 0)
+
+  const mirror = new Hyperdrive(new Corestore(ram), new Keychain(drive.key))
+  await mirror.ready()
+  t.absent(mirror.encryptionKey)
+
+  const s1 = mirror.corestore.replicate(true)
+  s1.pipe(drive.corestore.replicate(false)).pipe(s1)
+
+  await t.exception(() => mirror.get(__filename))
+  t.is(mirror.version, drive.version)
+  t.alike(mirror.contentKey, drive.contentKey)
+
+  t.absent(mirror.blobs.core.encryptionKey)
+})
+
+test('Hypedrive(corestore, keychain, { encryptionKey })', async (t) => {
+  const drive = new Hyperdrive(new Corestore(ram), { encrypted: true })
+  await drive.ready()
+  t.ok(drive.encryptionKey)
+  t.alike(drive.core.encryptionKey, drive.blobs.core.encryptionKey)
+
+  const diskbuf = fs.readFileSync(__filename)
+  await drive.put(__filename, diskbuf)
+  const bndlbuf = await drive.get(__filename)
+  t.is(b4a.compare(diskbuf, bndlbuf), 0)
+
+  const mirror = new Hyperdrive(new Corestore(ram), drive.key, { encryptionKey: drive.encryptionKey })
+  await mirror.ready()
+  t.alike(mirror.encryptionKey, drive.encryptionKey)
+
+  const s1 = mirror.corestore.replicate(true)
+  s1.pipe(drive.corestore.replicate(false)).pipe(s1)
+
+  await mirror.ready()
+  const mrrrbuf = await mirror.get(__filename)
+  t.is(b4a.compare(bndlbuf, mrrrbuf), 0)
+})
+
 test('drive.put(path, buf) and drive.get(path)', async (t) => {
   {
     const { drive } = await testenv(t.teardown)

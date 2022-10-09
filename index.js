@@ -12,7 +12,7 @@ module.exports = class Hyperdrive extends EventEmitter {
 
     if (isOptions(keychain) && !Keychain.isKeychain(keychain)) {
       opts = keychain
-      keychain = null
+      keychain = new Keychain()
     }
     const { _checkout, _db, _files, _blobs, onwait } = opts
     this._onwait = onwait || null
@@ -21,18 +21,23 @@ module.exports = class Hyperdrive extends EventEmitter {
 
     const coreOpts = {
       cache: true,
-      onwait
+      onwait,
+      encrypted: opts.encrypted,
+      encryptionKey: opts.encryptionKey
     }
 
     this.corestore = corestore
-    this.db = _db || makeBee(keychain, corestore, coreOpts)
+    this.db = _db || new Hyperbee(
+      makeCore(keychain, corestore, coreOpts),
+      { keyEncoding: 'utf-8', valueEncoding: 'json' }
+    )
     this.files = _files || this.db.sub('files')
 
-    this.blobs = _blobs || makeBlobs(keychain, corestore, coreOpts)
+    this.blobs = _blobs || new Hyperblobs(makeCore(keychain, corestore, coreOpts, 'blobs'))
 
     this.supportsMetadata = true
 
-    this.opening = this._open(keychain)
+    this.opening = this._open()
     this.opening.catch(noop)
     this.opened = false
 
@@ -52,6 +57,10 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   get discoveryKey () {
     return this.core.discoveryKey
+  }
+
+  get encryptionKey () {
+    return this.core.encryptionKey
   }
 
   get contentKey () {
@@ -440,16 +449,12 @@ function shallowReadStream (files, folder, keys) {
 
 function noop () {}
 
-function makeBee (keychain, corestore, opts) {
-  const signer = keychain.get()
-  const core = corestore.get({ ...signer, ...opts })
-  return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json' })
-}
+function makeCore (keychain, corestore, opts, name) {
+  const signer = keychain.get(name)
+  const encryptionKey = opts.encryptionKey ||
+    (opts.encrypted && keychain.get('encryptionKey').scalar)
 
-function makeBlobs (keychain, corestore, opts) {
-  const signer = keychain.get('blobs')
-  const core = corestore.get({ ...signer, ...opts })
-  return new Hyperblobs(core)
+  return corestore.get({ ...opts, ...signer, encryptionKey })
 }
 
 function normalizePath (name) {
