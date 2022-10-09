@@ -24,6 +24,7 @@
     "hyperbee": "^2.1.1",
     "hyperblobs": "^2.0.0",
     "is-options": "^1.0.2",
+    "keypear": "^1.1.1",
     "streamx": "^2.12.4",
     "unix-path-resolve": "^1.0.2"
   },
