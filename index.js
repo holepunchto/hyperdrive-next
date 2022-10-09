@@ -10,7 +10,7 @@ module.exports = class Hyperdrive extends EventEmitter {
   constructor (corestore, keychain, opts = {}) {
     super()
 
-    if (isOptions(keychain)) {
+    if (isOptions(keychain) && !Keychain.isKeychain(keychain)) {
       opts = keychain
       keychain = null
     }

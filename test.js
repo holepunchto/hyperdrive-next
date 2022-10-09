@@ -11,6 +11,7 @@ const testnet = require('@hyperswarm/testnet')
 const DHT = require('@hyperswarm/dht')
 const Hyperswarm = require('hyperswarm')
 const b4a = require('b4a')
+const Keychain = require('keypear')
 
 const Hyperdrive = require('./index.js')
 
@@ -62,6 +63,28 @@ test('Hyperdrive(corestore, key)', async (t) => {
   await mirror.ready()
   const mrrrbuf = await mirror.get(__filename)
   t.is(b4a.compare(bndlbuf, mrrrbuf), 0)
+})
+
+test('Hyperdrive(corestore, keychain)', async (t) => {
+  t.plan(3)
+  const { corestore, drive } = await testenv(t.teardown)
+  const diskbuf = fs.readFileSync(__filename)
+  await drive.put(__filename, diskbuf)
+  const bndlbuf = await drive.get(__filename)
+  t.is(b4a.compare(diskbuf, bndlbuf), 0)
+  const mirror = new Hyperdrive(corestore, new Keychain(drive.core.key))
+  t.absent(mirror.core.writable)
+  await mirror.ready()
+  const mrrrbuf = await mirror.get(__filename)
+  t.is(b4a.compare(bndlbuf, mrrrbuf), 0)
+})
+
+test('Hypedrive(corestore, keychain) - writable', async (t) => {
+  const keychain = new Keychain()
+  const drive = new Hyperdrive(new Corestore(ram), keychain)
+  await drive.ready()
+
+  t.ok(drive.core.writable)
 })
 
 test('drive.put(path, buf) and drive.get(path)', async (t) => {
