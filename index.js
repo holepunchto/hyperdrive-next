@@ -4,22 +4,37 @@ const isOptions = require('is-options')
 const { EventEmitter } = require('events')
 const { Writable, Readable } = require('streamx')
 const unixPathResolve = require('unix-path-resolve')
+const Keychain = require('keypear')
 
 module.exports = class Hyperdrive extends EventEmitter {
-  constructor (corestore, key, opts = {}) {
+  constructor (corestore, keychain, opts = {}) {
     super()
 
-    if (isOptions(key)) {
-      opts = key
-      key = null
+    if (isOptions(keychain) && !Keychain.isKeychain(keychain)) {
+      opts = keychain
+      keychain = new Keychain()
     }
-    const { _checkout, _db, _files, onwait } = opts
+    const { _checkout, _db, _files, _blobs, onwait } = opts
     this._onwait = onwait || null
 
+    keychain = Keychain.from(keychain)
+
+    const coreOpts = {
+      cache: true,
+      onwait,
+      encrypted: opts.encrypted,
+      encryptionKey: opts.encryptionKey
+    }
+
     this.corestore = corestore
-    this.db = _db || makeBee(key, corestore, this._onwait)
+    this.db = _db || new Hyperbee(
+      makeCore(keychain, corestore, coreOpts),
+      { keyEncoding: 'utf-8', valueEncoding: 'json' }
+    )
     this.files = _files || this.db.sub('files')
-    this.blobs = null
+
+    this.blobs = _blobs || new Hyperblobs(makeCore(keychain, corestore, coreOpts, 'blobs'))
+
     this.supportsMetadata = true
 
     this.opening = this._open()
@@ -42,6 +57,10 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   get discoveryKey () {
     return this.core.discoveryKey
+  }
+
+  get encryptionKey () {
+    return this.core.encryptionKey
   }
 
   get contentKey () {
@@ -82,7 +101,8 @@ module.exports = class Hyperdrive extends EventEmitter {
       onwait: this._onwait,
       _checkout: null,
       _db: this.db,
-      _files: this.files.batch()
+      _files: this.files.batch(),
+      _blobs: this.blobs
     })
   }
 
@@ -109,17 +129,8 @@ module.exports = class Hyperdrive extends EventEmitter {
     this.emit('close')
   }
 
-  async _openBlobsFromHeader (opts) {
-    if (this.blobs) return true
-
-    const header = await this.db.getHeader(opts)
-    if (!header) return false
-
-    if (this.blobs) return true
-
-    const blobsKey = header.metadata && header.metadata.contentFeed.subarray(0, 32)
-    if (!blobsKey || blobsKey.length < 32) throw new Error('Invalid or no Blob store key set')
-
+  async _openBlobsFromHeader (blobsKey) {
+    if (this._closing) return
     const blobsCore = this.corestore.get({
       key: blobsKey,
       cache: false,
@@ -138,41 +149,28 @@ module.exports = class Hyperdrive extends EventEmitter {
   async _open () {
     if (this._checkout) return this._checkout.ready()
 
-    await this._openBlobsFromHeader({ wait: false })
-
-    if (this.db.feed.writable && !this.blobs) {
-      const blobsCore = this.corestore.get({
-        name: 'blobs',
-        cache: false,
-        onwait: this._onwait
-      })
-      await blobsCore.ready()
-
-      this.blobs = new Hyperblobs(blobsCore)
-      this.db.metadata.contentFeed = this.blobs.core.key
-    }
-
     await this.db.ready()
+    await this.blobs.core.ready()
 
-    if (!this.blobs) {
+    // If there is a blobs key in header, open blobs from header.
+    this.db.getHeader().then((header) => {
+      if (!header) return
+      const blobsKey = header.metadata && header.metadata.contentFeed.subarray(0, 32)
+      if (!blobsKey || blobsKey.length < 32) return
       // eagerly load the blob store....
-      this._openingBlobs = this._openBlobsFromHeader()
+      this._openingBlobs = this._openBlobsFromHeader(blobsKey)
       this._openingBlobs.catch(noop)
-    }
+    }).catch(noop) // Handle closing while waiting for Header
 
     this.opened = true
     this.emit('ready')
   }
 
   async getBlobs () {
-    if (this.blobs) return this.blobs
+    if (this._checkout) return await this._checkout.getBlobs()
 
-    if (this._checkout) {
-      this.blobs = await this._checkout.getBlobs()
-    } else {
-      await this.ready()
-      await this._openingBlobs
-    }
+    await this.ready()
+    await this._openingBlobs
 
     return this.blobs
   }
@@ -451,13 +449,12 @@ function shallowReadStream (files, folder, keys) {
 
 function noop () {}
 
-function makeBee (key, corestore, onwait) {
-  const metadataOpts = key
-    ? { key, cache: true, onwait }
-    : { name: 'db', cache: true, onwait }
-  const core = corestore.get(metadataOpts)
-  const metadata = { contentFeed: null }
-  return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
+function makeCore (keychain, corestore, opts, name) {
+  const signer = keychain.get(name)
+  const encryptionKey = opts.encryptionKey ||
+    (opts.encrypted && keychain.get('encryptionKey').scalar)
+
+  return corestore.get({ ...opts, ...signer, encryptionKey })
 }
 
 function normalizePath (name) {
