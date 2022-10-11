@@ -22,7 +22,7 @@ module.exports = class Hyperdrive extends EventEmitter {
     this.blobs = null
     this.supportsMetadata = true
 
-    this.opening = this._open()
+    this.opening = this._open(opts)
     this.opening.catch(noop)
     this.opened = false
 
@@ -135,7 +135,7 @@ module.exports = class Hyperdrive extends EventEmitter {
     return true
   }
 
-  async _open () {
+  async _open (opts) {
     if (this._checkout) return this._checkout.ready()
 
     await this._openBlobsFromHeader({ wait: false })
@@ -159,6 +159,8 @@ module.exports = class Hyperdrive extends EventEmitter {
       this._openingBlobs = this._openBlobsFromHeader()
       this._openingBlobs.catch(noop)
     }
+
+    if (opts._preready) await opts._preready(this)
 
     this.opened = true
     this.emit('ready')
