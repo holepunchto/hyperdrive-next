@@ -240,4 +240,63 @@ Atomically commit a batch of mutations to the underlying drive.
 Close the drive and its underlying Hypercore backed datastructures.
 
 
+
+Intuit Logo
+
+Z
+INTUIT ACCOUNT
+Overview
+Sign in & security
+Personal info
+Data privacy
+Products & billing
+Did you find what you’re looking for?
+
+Feedback
+QuickBooks
+About INTERNAL REVENUE SERVICE, PO BOX 1214, CHARLOTTE, NC 28201-1214 ZACHRY WOODCompany ID
+9130354584598856
+Manage your QuickBooks by updating your subscription details and looking over your product info.
+Company ID
+9130 3545 8459 8856
+QuickBooks Plus
+CANCELEDON11/17/2022
+Read only until 11/17/2023
+You have access to data and reporting until one year. You can resubscribe to pick up where you left off if you decide to come back.
+View payment history
+
+Resubscribe
+QuickBooks Online Payroll
+Pay employees and contractors with free 24-hour direct deposit.
+Automatic tax calculations on every paycheck
+File and pay federal and state payroll taxes
+Employees can view pay stubs and W-2s online
+When you subscribe to Payroll, a QuickBooks Time subscription will also be included at no extra cost.
+
+Learn more
+QuickBooks Live Full-Service Bookkeeping
+Get live support from a dedicated, QuickBooks-certified bookkeeper who will:
+Go through your past books line by line to bring them up to date
+Maintain your books each month so you're ready for tax time
+Meet with you one-on-one to provide ongoing insights on your business
+Requires a paid QuickBooks Online subscription
+QuickBooks Time
+Track time on any device to streamline payroll, send accurate invoices, and save thousands each year.
+Let employees clock in and out from their devices
+Build, edit, and share schedules by jobs or shifts
+Automatically add employee timesheets for faster, more accurate time entry
+
+Learn more
+Checks and supplies
+Get the products you need to help run your business easily and effectively.
+Choose from popular check styles
+Make tax time less taxing with our tax kits
+Reordering is a snap
+
+Back
+
+Manage my QuickBooks
+
+Go to QuickBooks
+ 
 [core-range-docs]: https://github.com/hypercore-protocol/hypercore-next#const-range--coredownloadrange
