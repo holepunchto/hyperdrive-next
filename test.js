@@ -65,7 +65,7 @@ test('Hyperdrive(corestore, key)', async (t) => {
 })
 
 test('Hyperdrive(corestore, { name })', async (t) => {
-  t.plan(3)
+  t.plan(5)
   const { corestore, drive } = await testenv(t.teardown)
   const diskbuf = fs.readFileSync(__filename)
   await drive.put(__filename, diskbuf)
@@ -81,6 +81,9 @@ test('Hyperdrive(corestore, { name })', async (t) => {
   await another.ready()
   const antbuf = await another.get(__filename)
   t.is(antbuf, null)
+
+  t.alike(drive.key, mirror.key)
+  t.unlike(drive.key, another.key)
 })
 
 test('drive.put(path, buf) and drive.get(path)', async (t) => {
