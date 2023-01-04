@@ -44,15 +44,6 @@ Creates a new Hyperdrive instance.
 
 `key` should be a Hypercore public key. If you do not set this, Hyperdrive will use the core at `{ name: 'db' }` in the passed Corestore instance.
 
-Available `options`:
-```js
-{
-  name: 'db'
-}
-```
-
-You can use Corestore namespaces to store multiple Hyperdrives, or using a different name as well.
-
 #### `await drive.ready()`
 
 Wait for the drive to fully open. In general, you do **NOT** need to wait for `ready` unless checking a synchronous property on `drive` since internals `await` this themselves.
