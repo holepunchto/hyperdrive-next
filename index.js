@@ -18,7 +18,7 @@ module.exports = class Hyperdrive extends EventEmitter {
     this._onwait = onwait || null
 
     this.corestore = corestore
-    this.db = _db || makeBee(key, corestore, this._onwait)
+    this.db = _db || makeBee(key, corestore, this._onwait, opts.name)
     this.files = _files || this.db.sub('files')
     this.blobs = null
     this.supportsMetadata = true
@@ -456,10 +456,10 @@ function shallowReadStream (files, folder, keys) {
 
 function noop () {}
 
-function makeBee (key, corestore, onwait) {
-  const metadataOpts = key
+function makeBee (key, corestore, onwait, name) {
+  const metadataOpts = key && !name
     ? { key, cache: true, onwait }
-    : { name: 'db', cache: true, onwait }
+    : { name: name || 'db', cache: true, onwait }
   const core = corestore.get(metadataOpts)
   const metadata = { contentFeed: null }
   return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })

@@ -64,6 +64,25 @@ test('Hyperdrive(corestore, key)', async (t) => {
   t.is(b4a.compare(bndlbuf, mrrrbuf), 0)
 })
 
+test('Hyperdrive(corestore, { name })', async (t) => {
+  t.plan(3)
+  const { corestore, drive } = await testenv(t.teardown)
+  const diskbuf = fs.readFileSync(__filename)
+  await drive.put(__filename, diskbuf)
+  const bndlbuf = await drive.get(__filename)
+  t.is(b4a.compare(diskbuf, bndlbuf), 0)
+
+  const mirror = new Hyperdrive(corestore, { name: 'db' })
+  await mirror.ready()
+  const mrrrbuf = await mirror.get(__filename)
+  t.is(b4a.compare(bndlbuf, mrrrbuf), 0)
+
+  const another = new Hyperdrive(corestore, { name: 'db2' })
+  await another.ready()
+  const antbuf = await another.get(__filename)
+  t.is(antbuf, null)
+})
+
 test('drive.put(path, buf) and drive.get(path)', async (t) => {
   {
     const { drive } = await testenv(t.teardown)
