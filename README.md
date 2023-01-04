@@ -36,7 +36,7 @@ ws.on('close', function () {
 
 ## API
 
-#### `const drive = new Hyperdrive(corestore, [key], [options])`
+#### `const drive = new Hyperdrive(corestore, [key])`
 
 Creates a new Hyperdrive instance.
 
