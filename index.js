@@ -278,17 +278,17 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   // atm always recursive, but we should add some depth thing to it
-  list (folder = '/', { recursive = true } = {}) {
+  list (folder = '/', { filter = null, recursive = true } = {}) {
     if (typeof folder === 'object') return this.list(undefined, folder)
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
-    if (recursive === false) return shallowReadStream(this.files, folder, false)
+    if (recursive === false) return shallowReadStream(this.files, folder, { keys: false, filter })
     // '0' is binary +1 of /
-    return folder ? this.entries({ gt: folder + '/', lt: folder + '0' }) : this.entries()
+    return folder ? this.entries({ gt: folder + '/', lt: folder + '0', filter }) : this.entries({ filter })
   }
 
   readdir (folder = '/') {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
-    return shallowReadStream(this.files, folder, true)
+    return shallowReadStream(this.files, folder, { keys: true })
   }
 
   mirror (out, opts) {
@@ -422,34 +422,40 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 }
 
-function shallowReadStream (files, folder, keys) {
+function shallowReadStream (files, folder, { keys, filter } = {}) {
   let prev = '/'
   return new Readable({
     async read (cb) {
-      let node = null
+      while (true) {
+        let node = null
 
-      try {
-        node = await files.peek({
-          gt: folder + prev,
-          lt: folder + '0'
-        })
-      } catch (err) {
-        return cb(err)
+        try {
+          node = await files.peek({
+            gt: folder + prev,
+            lt: folder + '0'
+          })
+        } catch (err) {
+          return cb(err)
+        }
+
+        if (!node) {
+          this.push(null)
+          return cb(null)
+        }
+
+        const suffix = node.key.slice(folder.length + 1)
+        const i = suffix.indexOf('/')
+        const name = i === -1 ? suffix : suffix.slice(0, i)
+
+        prev = '/' + name + '0'
+
+        if (filter && !filter(node.key)) continue
+
+        this.push(keys ? name : node)
+        cb(null)
+
+        break
       }
-
-      if (!node) {
-        this.push(null)
-        return cb(null)
-      }
-
-      const suffix = node.key.slice(folder.length + 1)
-      const i = suffix.indexOf('/')
-      const name = i === -1 ? suffix : suffix.slice(0, i)
-
-      prev = '/' + name + '0'
-
-      this.push(keys ? name : node)
-      cb(null)
     }
   })
 }

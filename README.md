@@ -211,7 +211,8 @@ Returns a stream of all entries in the drive at paths prefixed with `folder`. Op
 
 ```js
 {
-  recursive: true | false // whether to descend into all subfolders or not
+  recursive: true | false, // whether to descend into all subfolders or not
+  filter: (key) => true
 }
 ```
 

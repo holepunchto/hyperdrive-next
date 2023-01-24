@@ -460,6 +460,51 @@ test('drive.list(folder, { recursive })', async (t) => {
   }
 })
 
+test('drive.list(folder, { filter })', async (t) => {
+  {
+    const { drive } = await testenv(t.teardown)
+
+    const empty = b4a.from('')
+    await drive.put('/', empty)
+    await drive.put('/grandparent', empty)
+    await drive.put('/grandparent/parent', empty)
+    await drive.put('/grandparent/parent/child', empty)
+    await drive.put('/grandparent/parent/child/fst-grandchild.file', empty)
+    await drive.put('/grandparent/parent/child/snd-grandchild.file', empty)
+
+    const expected = ['/grandparent', '/grandparent/parent/child']
+    const actual = []
+
+    for await (const entry of drive.list({ filter: key => (key === expected[0] || key === expected[1]) })) {
+      actual.push(entry.key)
+    }
+
+    t.alike(actual.sort(), expected.sort())
+  }
+
+  {
+    const { drive } = await testenv(t.teardown)
+
+    const empty = b4a.from('')
+    await drive.put('/', empty)
+    await drive.put('/fst-grandparent', empty)
+    await drive.put('/snd-grandparent', empty)
+    await drive.put('/grandparent', empty)
+    await drive.put('/grandparent/parent', empty)
+    await drive.put('/grandparent/parent/child', empty)
+    await drive.put('/another-grandparent', empty)
+
+    const expected = ['/snd-grandparent', '/another-grandparent']
+    const actual = []
+
+    for await (const entry of drive.list({ recursive: false, filter: key => (key === expected[0] || key === expected[1]) })) {
+      actual.push(entry.key)
+    }
+
+    t.alike(actual.sort(), expected.sort())
+  }
+})
+
 test('drive.readdir(path)', async (t) => {
   {
     const { drive, paths: { root } } = await testenv(t.teardown)
