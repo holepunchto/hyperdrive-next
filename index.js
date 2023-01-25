@@ -5,6 +5,7 @@ const { EventEmitter } = require('events')
 const { Writable, Readable } = require('streamx')
 const unixPathResolve = require('unix-path-resolve')
 const MirrorDrive = require('mirror-drive')
+const safetyCatch = require('safety-catch')
 
 module.exports = class Hyperdrive extends EventEmitter {
   constructor (corestore, key, opts = {}) {
@@ -102,10 +103,10 @@ module.exports = class Hyperdrive extends EventEmitter {
 
     try {
       await this.ready()
-      await this.blobs.core.close()
-      await this.db.feed.close()
-      await this.corestore.close()
-    } catch {}
+      await this.blobs?.core?.close()
+      await this.db?.feed?.close()
+      await this.corestore?.close()
+    } catch (e) { safetyCatch(e) }
 
     this.emit('close')
   }
