@@ -426,36 +426,35 @@ function shallowReadStream (files, folder, { keys, filter } = {}) {
   let prev = '/'
   return new Readable({
     async read (cb) {
-      while (true) {
-        let node = null
+      let node = null
 
-        try {
-          node = await files.peek({
-            gt: folder + prev,
-            lt: folder + '0'
-          })
-        } catch (err) {
-          return cb(err)
-        }
-
-        if (!node) {
-          this.push(null)
-          return cb(null)
-        }
-
-        const suffix = node.key.slice(folder.length + 1)
-        const i = suffix.indexOf('/')
-        const name = i === -1 ? suffix : suffix.slice(0, i)
-
-        prev = '/' + name + '0'
-
-        if (filter && !filter(node.key)) continue
-
-        this.push(keys ? name : node)
-        cb(null)
-
-        break
+      try {
+        node = await files.peek({
+          gt: folder + prev,
+          lt: folder + '0'
+        })
+      } catch (err) {
+        return cb(err)
       }
+
+      if (!node) {
+        this.push(null)
+        return cb(null)
+      }
+
+      const suffix = node.key.slice(folder.length + 1)
+      const i = suffix.indexOf('/')
+      const name = i === -1 ? suffix : suffix.slice(0, i)
+
+      prev = '/' + name + '0'
+
+      if (filter && !filter(node.key)) {
+        this._read(cb)
+        return
+      }
+
+      this.push(keys ? name : node)
+      cb(null)
     }
   })
 }
