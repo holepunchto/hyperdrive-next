@@ -891,6 +891,34 @@ test('drive.get(key, { timeout })', async (t) => {
   }
 })
 
+test('drive peek with get() and timeout', async (t) => {
+  t.plan(3)
+
+  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  swarm.on('connection', (conn) => corestore.replicate(conn))
+  swarm.join(drive.discoveryKey, { server: true, client: false })
+  await swarm.flush()
+
+  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
+  mirror.swarm.join(drive.discoveryKey, { server: false, client: true })
+  await mirror.swarm.flush()
+
+  await drive.put('/file.txt', b4a.from('hi'))
+
+  await mirror.drive.getBlobs()
+
+  const entry = await mirror.drive.entry('/file.txt')
+  t.ok(entry)
+  t.ok(entry.value.blob)
+
+  try {
+    await mirror.drive.get('/file.txt', { start: 100, timeout: 1 })
+    t.fail('should have failed')
+  } catch (error) {
+    t.is(error.code, 'REQUEST_TIMEOUT')
+  }
+})
+
 async function testenv (teardown) {
   const corestore = new Corestore(RAM)
   await corestore.ready()
