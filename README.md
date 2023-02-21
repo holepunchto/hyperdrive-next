@@ -104,13 +104,27 @@ Boolean indicating if the drive handles or not metadata. Always `true`.
 
 Creates a file at `path` in the drive. `options` are the same as in `createWriteStream`.
 
-#### `const buffer = await drive.get(path)`
+#### `const buffer = await drive.get(path, [options])`
 
 Returns the blob at `path` in the drive. If no blob exists, returns `null`.
 
 It also returns `null` for symbolic links.
 
-#### `const entry = await drive.entry(path)`
+`options` can include:
+```js
+{
+  wait: true, // Wait for block to be downloaded
+  timeout: 0 // Wait at max some milliseconds (0 means no timeout)
+}
+```
+
+#### `const stream = drive.createReadStream(path, [options])`
+
+Returns a stream that can be used to read out the blob stored in the drive at `path`.
+
+`options` are the same as the `options` to `Hyperblobs().createReadStream(path, options)`. Including `wait` and `timeout` options.
+
+#### `const entry = await drive.entry(path, [options])`
 
 Returns the entry at `path` in the drive. It looks like this:
 ```js
@@ -142,6 +156,8 @@ Deletes the file at `path` from the drive.
 #### `const cleared = await drive.clear(path, [options])`
 
 Deletes the blob from storage to free up space, but the file structure reference is kept.
+
+`options` are the same as for `drive.get(path, options)`.
 
 `options` include:
 ```js
