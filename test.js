@@ -883,6 +883,7 @@ test('drive.entry(key, { wait })', async (t) => {
     await mirror.drive.entry('/file.txt', { wait: false })
     t.fail('should have failed')
   } catch (error) {
+    // Hyperbee error
     t.is(error.message, 'Block not available locally')
   }
 })
