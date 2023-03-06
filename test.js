@@ -358,6 +358,48 @@ test('symlink(key, linkname) resolve key path', async function (t) {
   await symlinkAndEntry('\\examples\\more\\h.txt', '/examples/more/h.txt')
 })
 
+test('watch() basic', async function (t) {
+  t.plan(2)
+
+  const { drive } = await testenv(t.teardown)
+  const buf = b4a.from('hi')
+
+  const watcher = drive.watch()
+
+  watcher.on('change', function (newVersion, oldVersion) {
+    t.is(newVersion, 2)
+    t.is(oldVersion, 1)
+  })
+
+  await drive.put('/a.txt', buf)
+})
+
+test('watch(folder)', async function (t) {
+  t.plan(1)
+
+  const { drive } = await testenv(t.teardown)
+  const buf = b4a.from('hi')
+
+  await drive.put('/README.md', buf)
+  await drive.put('/examples/a.txt', buf)
+  await drive.put('/examples/more/a.txt', buf)
+
+  const watcher = drive.watch('/examples')
+
+  const onchangefail = () => t.fail('should not trigger changes')
+  const onchangepass = () => t.pass('change')
+
+  watcher.on('change', onchangefail)
+  await drive.put('/b.txt', buf)
+  await eventFlush()
+  watcher.off('change', onchangefail)
+
+  watcher.on('change', onchangepass)
+  await drive.put('/examples/b.txt', buf)
+  await eventFlush()
+  watcher.off('change', onchangepass)
+})
+
 test('drive.diff(length)', async (t) => {
   const { drive, paths: { root, tmp } } = await testenv(t.teardown)
   const paths = []
@@ -911,4 +953,7 @@ function createTmpDir (t) {
   const dir = fs.mkdtempSync(tmpdir)
   t.teardown(() => fs.promises.rm(dir, { recursive: true }))
   return dir
+
+function eventFlush () {
+  return new Promise(resolve => setImmediate(resolve))
 }
