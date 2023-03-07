@@ -1017,8 +1017,8 @@ function createTmpDir (t) {
 
 async function replicate (drive, swarm, mirror) {
   swarm.on('connection', (conn) => drive.corestore.replicate(conn))
-  swarm.join(drive.discoveryKey, { server: true, client: false })
-  await swarm.flush()
+  const discovery = swarm.join(drive.discoveryKey, { server: true, client: false })
+  await discovery.flushed()
 
   mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
   mirror.swarm.join(drive.discoveryKey, { server: false, client: true })

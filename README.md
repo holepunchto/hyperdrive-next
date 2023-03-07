@@ -102,7 +102,7 @@ Boolean indicating if the drive handles or not metadata. Always `true`.
 
 #### `await drive.put(path, buffer, [options])`
 
-Creates a file at `path` in the drive. `options` are the same as in `createWriteStream`.
+Creates a file at `path` in the drive. `options` are the same as for `createWriteStream`.
 
 #### `const buffer = await drive.get(path, [options])`
 
@@ -110,7 +110,7 @@ Returns the blob at `path` in the drive. If no blob exists, returns `null`.
 
 It also returns `null` for symbolic links.
 
-`options` can include:
+`options` include:
 ```js
 {
   wait: true, // Wait for block to be downloaded
@@ -156,8 +156,6 @@ Deletes the file at `path` from the drive.
 #### `const cleared = await drive.clear(path, [options])`
 
 Deletes the blob from storage to free up space, but the file structure reference is kept.
-
-`options` are the same as for `drive.get(path, options)`.
 
 `options` include:
 ```js
@@ -210,7 +208,7 @@ Returns a stream of all subpaths of entries in drive stored at paths prefixed by
 
 Returns a read stream of entries in the drive.
 
-`options` are the same as the `options` to `Hyperbee().createReadStream(options)`.
+`options` are the same as for `Hyperbee().createReadStream(options)`.
 
 #### `const mirror = drive.mirror(out, [options])`
 
@@ -249,7 +247,7 @@ Stream a blob into the drive at `path`.
 
 Downloads the blobs corresponding to all entries in the drive at paths prefixed with `folder`.
 
-`options` are the same as those for `drive.list(folder, [options])`.
+`options` are the same as for `drive.list(folder, [options])`.
 
 #### `const snapshot = drive.checkout(version)`
 
