@@ -837,13 +837,7 @@ test('drive.entry(key, { timeout })', async (t) => {
   t.plan(1)
 
   const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
-  swarm.on('connection', (conn) => corestore.replicate(conn))
-  swarm.join(drive.discoveryKey, { server: true, client: false })
-  await swarm.flush()
-
-  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
-  mirror.swarm.join(drive.discoveryKey, { server: false, client: true })
-  await mirror.swarm.flush()
+  await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
 
@@ -864,13 +858,7 @@ test('drive.entry(key, { wait })', async (t) => {
   t.plan(1)
 
   const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
-  swarm.on('connection', (conn) => corestore.replicate(conn))
-  swarm.join(drive.discoveryKey, { server: true, client: false })
-  await swarm.flush()
-
-  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
-  mirror.swarm.join(drive.discoveryKey, { server: false, client: true })
-  await mirror.swarm.flush()
+  await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
 
@@ -892,13 +880,7 @@ test('drive.get(key, { timeout })', async (t) => {
   t.plan(3)
 
   const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
-  swarm.on('connection', (conn) => corestore.replicate(conn))
-  swarm.join(drive.discoveryKey, { server: true, client: false })
-  await swarm.flush()
-
-  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
-  mirror.swarm.join(drive.discoveryKey, { server: false, client: true })
-  await mirror.swarm.flush()
+  await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
 
@@ -919,17 +901,54 @@ test('drive.get(key, { timeout })', async (t) => {
   }
 })
 
+test('drive.get(key, { wait }) with entry', async (t) => {
+  t.plan(3)
+
+  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  await replicate(drive, swarm, mirror)
+
+  await drive.put('/file.txt', b4a.from('hi'))
+
+  await mirror.drive.getBlobs()
+
+  const entry = await mirror.drive.entry('/file.txt')
+  t.ok(entry)
+  t.ok(entry.value.blob)
+
+  await swarm.destroy()
+  await drive.close()
+
+  const blob = await mirror.drive.get('/file.txt', { wait: false })
+  t.is(blob, null)
+})
+
+test('drive.get(key, { wait }) without entry', async (t) => {
+  t.plan(1)
+
+  const { drive, swarm, mirror } = await testenv(t.teardown)
+  await replicate(drive, swarm, mirror)
+
+  await drive.put('/file.txt', b4a.from('hi'))
+
+  await mirror.drive.getBlobs()
+
+  await swarm.destroy()
+  await drive.close()
+
+  try {
+    await mirror.drive.get('/file.txt', { wait: false })
+    t.fail('should have failed')
+  } catch (error) {
+    // Hyperbee error
+    t.is(error.message, 'Block not available locally')
+  }
+})
+
 test('drive peek with get() and timeout', async (t) => {
   t.plan(3)
 
   const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
-  swarm.on('connection', (conn) => corestore.replicate(conn))
-  swarm.join(drive.discoveryKey, { server: true, client: false })
-  await swarm.flush()
-
-  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
-  mirror.swarm.join(drive.discoveryKey, { server: false, client: true })
-  await mirror.swarm.flush()
+  await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
 
@@ -1010,4 +1029,14 @@ function createTmpDir (t) {
   const dir = fs.mkdtempSync(tmpdir)
   t.teardown(() => fs.promises.rm(dir, { recursive: true }))
   return dir
+}
+
+async function replicate (drive, swarm, mirror) {
+  swarm.on('connection', (conn) => drive.corestore.replicate(conn))
+  swarm.join(drive.discoveryKey, { server: true, client: false })
+  await swarm.flush()
+
+  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
+  mirror.swarm.join(drive.discoveryKey, { server: false, client: true })
+  await mirror.swarm.flush()
 }
