@@ -374,7 +374,7 @@ test('watch() basic', async function (t) {
   await drive.put('/a.txt', buf)
 })
 
-test('watch(folder)', async function (t) {
+test('watch(folder) basic', async function (t) {
   t.plan(1)
 
   const { drive } = await testenv(t.teardown)
@@ -396,6 +396,28 @@ test('watch(folder)', async function (t) {
 
   watcher.on('change', onchangepass)
   await drive.put('/examples/b.txt', buf)
+  await eventFlush()
+  watcher.off('change', onchangepass)
+})
+
+test('watch(folder) should normalize folder', async function (t) {
+  t.plan(1)
+
+  const { drive } = await testenv(t.teardown)
+  const buf = b4a.from('hi')
+
+  const watcher = drive.watch('examples//more//')
+
+  const onchangefail = () => t.fail('should not trigger changes')
+  const onchangepass = () => t.pass('change')
+
+  watcher.on('change', onchangefail)
+  await drive.put('/examples/a.txt', buf)
+  await eventFlush()
+  watcher.off('change', onchangefail)
+
+  watcher.on('change', onchangepass)
+  await drive.put('/examples/more/a.txt', buf)
   await eventFlush()
   watcher.off('change', onchangepass)
 })
