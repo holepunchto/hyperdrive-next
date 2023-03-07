@@ -836,7 +836,7 @@ test('drive.exists(key)', async function (t) {
 test('drive.entry(key, { timeout })', async (t) => {
   t.plan(1)
 
-  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  const { drive, swarm, mirror } = await testenv(t.teardown)
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
@@ -856,7 +856,7 @@ test('drive.entry(key, { timeout })', async (t) => {
 test('drive.entry(key, { wait })', async (t) => {
   t.plan(1)
 
-  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  const { drive, swarm, mirror } = await testenv(t.teardown)
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
@@ -877,7 +877,7 @@ test('drive.entry(key, { wait })', async (t) => {
 test('drive.get(key, { timeout })', async (t) => {
   t.plan(3)
 
-  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  const { drive, swarm, mirror } = await testenv(t.teardown)
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
@@ -901,7 +901,7 @@ test('drive.get(key, { timeout })', async (t) => {
 test('drive.get(key, { wait }) with entry', async (t) => {
   t.plan(3)
 
-  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  const { drive, swarm, mirror } = await testenv(t.teardown)
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
@@ -942,7 +942,7 @@ test('drive.get(key, { wait }) without entry', async (t) => {
 test('drive peek with get() and timeout', async (t) => {
   t.plan(3)
 
-  const { corestore, drive, swarm, mirror } = await testenv(t.teardown)
+  const { drive, swarm, mirror } = await testenv(t.teardown)
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
