@@ -840,7 +840,6 @@ test('drive.entry(key, { timeout })', async (t) => {
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
-
   await mirror.drive.getBlobs()
 
   await swarm.destroy()
@@ -861,7 +860,6 @@ test('drive.entry(key, { wait })', async (t) => {
   await replicate(drive, swarm, mirror)
 
   await drive.put('/file.txt', b4a.from('hi'))
-
   await mirror.drive.getBlobs()
 
   await swarm.destroy()
