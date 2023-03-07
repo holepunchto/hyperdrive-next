@@ -865,13 +865,8 @@ test('drive.entry(key, { wait })', async (t) => {
   await swarm.destroy()
   await drive.close()
 
-  try {
-    await mirror.drive.entry('/file.txt', { wait: false })
-    t.fail('should have failed')
-  } catch (error) {
-    // Hyperbee error
-    t.is(error.message, 'Block not available locally')
-  }
+  const entry = await mirror.drive.entry('/file.txt', { wait: false })
+  t.is(entry, null)
 })
 
 test('drive.get(key, { timeout })', async (t) => {
@@ -930,13 +925,8 @@ test('drive.get(key, { wait }) without entry', async (t) => {
   await swarm.destroy()
   await drive.close()
 
-  try {
-    await mirror.drive.get('/file.txt', { wait: false })
-    t.fail('should have failed')
-  } catch (error) {
-    // Hyperbee error
-    t.is(error.message, 'Block not available locally')
-  }
+  const blob = await mirror.drive.get('/file.txt', { wait: false })
+  t.is(blob, null)
 })
 
 test('drive peek with get() and timeout', async (t) => {

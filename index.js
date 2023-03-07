@@ -246,10 +246,15 @@ module.exports = class Hyperdrive extends ReadyResource {
     return this.files.put(normalizePath(name), { executable: false, linkname: dst, blob: null, metadata })
   }
 
-  entry (name, opts) {
-    return typeof name === 'string'
-      ? this.files.get(normalizePath(name), opts)
-      : Promise.resolve(name)
+  async entry (name, opts) {
+    if (typeof name !== 'string') return Promise.resolve(name)
+
+    try {
+      return await this.files.get(normalizePath(name), opts)
+    } catch (err) {
+      if (err.message === 'Block not available locally') return null
+      throw err
+    }
   }
 
   async exists (name) {
