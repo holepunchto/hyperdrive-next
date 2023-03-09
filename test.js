@@ -700,8 +700,6 @@ test('blobs event on new drive', async (t) => {
   t.plan(4)
 
   const store = new Corestore(RAM)
-  await store.ready()
-
   const drive = new Hyperdrive(store)
 
   drive.on('blobs', function (blobs) {
