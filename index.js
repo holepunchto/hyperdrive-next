@@ -151,6 +151,9 @@ module.exports = class Hyperdrive extends EventEmitter {
 
       this.blobs = new Hyperblobs(blobsCore)
       this.db.metadata.contentFeed = this.blobs.core.key
+
+      this.emit('blobs', this.blobs)
+      this.emit('content-key', blobsCore.key)
     }
 
     await this.db.ready()

@@ -4,7 +4,7 @@ const path = require('path')
 const { once } = require('events')
 const test = require('brittle')
 const Corestore = require('corestore')
-const ram = require('random-access-memory')
+const RAM = require('random-access-memory')
 const { discoveryKey } = require('hypercore-crypto')
 const { pipelinePromise: pipeline, Writable, Readable } = require('streamx')
 const testnet = require('@hyperswarm/testnet')
@@ -696,8 +696,29 @@ test('drive.mirror()', async (t) => {
   t.alike(await b.get('/'), b4a.from('hello world'))
 })
 
+test('blobs event on new drive', async (t) => {
+  t.plan(4)
+
+  const store = new Corestore(RAM)
+  await store.ready()
+
+  const drive = new Hyperdrive(store)
+
+  drive.on('blobs', function (blobs) {
+    t.is(blobs, drive.blobs)
+  })
+
+  drive.on('content-key', function (key) {
+    t.alike(key, drive.blobs.core.key)
+  })
+  
+  t.absent(drive.blobs)
+  await drive.ready()
+  t.ok(drive.blobs)
+})
+
 async function testenv (teardown) {
-  const corestore = new Corestore(ram)
+  const corestore = new Corestore(RAM)
   await corestore.ready()
 
   const drive = new Hyperdrive(corestore)
@@ -711,7 +732,7 @@ async function testenv (teardown) {
   const mirror = {}
   mirror.swarm = new Hyperswarm({ dht: new DHT({ bootstrap }) })
   teardown(mirror.swarm.destroy.bind(mirror.swarm))
-  mirror.corestore = new Corestore(ram)
+  mirror.corestore = new Corestore(RAM)
   mirror.drive = new Hyperdrive(mirror.corestore, drive.key)
   await mirror.drive.ready()
 
