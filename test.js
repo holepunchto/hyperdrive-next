@@ -696,7 +696,7 @@ test('drive.mirror()', async (t) => {
   t.alike(await b.get('/'), b4a.from('hello world'))
 })
 
-test('blobs event on new drive', async (t) => {
+test('blobs with writable drive', async (t) => {
   t.plan(4)
 
   const store = new Corestore(RAM)
