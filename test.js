@@ -709,7 +709,7 @@ test('blobs event on new drive', async (t) => {
   drive.on('content-key', function (key) {
     t.alike(key, drive.blobs.core.key)
   })
-  
+
   t.absent(drive.blobs)
   await drive.ready()
   t.ok(drive.blobs)
