@@ -696,6 +696,30 @@ test('drive.mirror()', async (t) => {
   t.alike(await b.get('/'), b4a.from('hello world'))
 })
 
+test('can get files from drive loaded from different namespace on same corestore', async (t) => {
+  const store = new Corestore(ram)
+  const space = store.namespace('mydrive')
+
+  const drive = new Hyperdrive(space)
+  await drive.ready()
+
+  // Uncommenting the following line makes the test pass
+  // It seems to fail because the driveFromOtherSpace is defined
+  // before the original drive’s bee’s header was set
+  // (solved by calling any operation which does set the header beforehand,
+  // like calling drive.put(...)--this one seems ~the minimal
+
+  // await drive.files.batch().getRoot(true)
+
+  const otherSpace = store.namespace('also-my-drive')
+  const driveFromOtherSpace = new Hyperdrive(otherSpace, drive.key)
+
+  await drive.put('yes', 'works')
+  t.is(await driveFromOtherSpace.get('nothing here'), null)
+  t.is((await driveFromOtherSpace.entry('yes')).key, '/yes')
+  t.alike(await driveFromOtherSpace.get('yes'), b4a.from('works')) // currently never resolves
+})
+
 async function testenv (teardown) {
   const corestore = new Corestore(ram)
   await corestore.ready()
