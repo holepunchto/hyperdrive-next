@@ -233,7 +233,7 @@ Removes the `entry` at `path` from the drive. If a blob corresponding to the ent
 
 Deletes the blob containing the content of the `entry` at `path` from the underlying storage, but leaves the entry itself be (so the entry still exists in the database, but its content does not exist locally anymore). Note that this is a destructive operation which also affects checkouts taken at a time before calling it.
 
-#### `watcher = db.watch([folder], [onchange])`
+#### `watcher = db.watch([folder])`
 
 Listens to changes that are on `folder`, by default `/`.
 
