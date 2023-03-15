@@ -237,11 +237,27 @@ Deletes the blob containing the content of the `entry` at `path` from the underl
 
 Listens to changes that are on `folder`, by default `/`.
 
+Usage example:
+```js
+for await (const { current, previous } of watcher) {
+  console.log(current.version)
+  console.log(previous.version)
+}
+```
+
+Or manually calling `next()`:
+```js
+const { done, value } = await watcher.next()
+if (done) return
+
+console.log(value.current.version)
+console.log(value.previous.version)
+```
+
+Returns a new value after a file change, `current` and `previous` are snapshots that are auto-closed before next value.
+
 `watcher.destroy()`\
 Closes the watcher.
-
-`watcher.on('change', (newVersion, oldVersion) => {})`\
-Emitted after a file change.
 
 `watcher.on('error', onerror)`\
 Critical and unexpected errors will be thrown, but watcher is normally graceful.\
