@@ -366,12 +366,11 @@ test('watch() basic', async function (t) {
 
   const watcher = drive.watch()
 
-  watcher.on('change', function (newVersion, oldVersion) {
-    t.is(newVersion, 2)
-    t.is(oldVersion, 1)
-  })
-
   await drive.put('/a.txt', buf)
+
+  const { value: { current, previous } } = await watcher.next()
+  t.is(current.version, 2)
+  t.is(previous.version, 1)
 })
 
 test('watch(folder) basic', async function (t) {
@@ -386,18 +385,22 @@ test('watch(folder) basic', async function (t) {
 
   const watcher = drive.watch('/examples')
 
-  const onchangefail = () => t.fail('should not trigger changes')
-  const onchangepass = () => t.pass('change')
+  let next = watcher.next()
+  let onchange = null
+  next.then(data => {
+    next = watcher.next()
+    onchange(data)
+  })
 
-  watcher.on('change', onchangefail)
+  onchange = () => t.fail('should not trigger changes')
   await drive.put('/b.txt', buf)
   await eventFlush()
-  watcher.off('change', onchangefail)
+  onchange = null
 
-  watcher.on('change', onchangepass)
+  onchange = () => t.pass('change')
   await drive.put('/examples/b.txt', buf)
   await eventFlush()
-  watcher.off('change', onchangepass)
+  onchange = null
 })
 
 test('watch(folder) should normalize folder', async function (t) {
@@ -408,18 +411,22 @@ test('watch(folder) should normalize folder', async function (t) {
 
   const watcher = drive.watch('examples//more//')
 
-  const onchangefail = () => t.fail('should not trigger changes')
-  const onchangepass = () => t.pass('change')
+  let next = watcher.next()
+  let onchange = null
+  next.then(data => {
+    next = watcher.next()
+    onchange(data)
+  })
 
-  watcher.on('change', onchangefail)
+  onchange = () => t.fail('should not trigger changes')
   await drive.put('/examples/a.txt', buf)
   await eventFlush()
-  watcher.off('change', onchangefail)
+  onchange = null
 
-  watcher.on('change', onchangepass)
+  onchange = () => t.pass('change')
   await drive.put('/examples/more/a.txt', buf)
   await eventFlush()
-  watcher.off('change', onchangepass)
+  onchange = null
 })
 
 test('drive.diff(length)', async (t) => {

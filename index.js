@@ -245,18 +245,12 @@ module.exports = class Hyperdrive extends ReadyResource {
     return await this.entry(name) !== null
   }
 
-  watch (folder = '/', onchange) {
-    if (typeof folder === 'function') {
-      onchange = folder
-      folder = undefined
-    }
-
+  watch (folder) {
     folder = normalizePath(folder || '')
 
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
-    const range = { gt: folder + '/', lt: folder + '0' }
-    return this.files.watch(range, onchange)
+    return this.files.watch({ gt: folder + '/', lt: folder + '0' })
   }
 
   diff (length, folder, opts) {
