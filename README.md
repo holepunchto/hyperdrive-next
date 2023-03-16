@@ -122,7 +122,8 @@ Sets the `blob` in the drive at `path`.
 
 ```js
 {
-  executable: true | false // whether the blob is executable or not
+  executable: true | false, // whether the blob is executable or not
+  metadata: null // extended file information i.e. arbitrary JSON value
 }
 ```
 
@@ -132,7 +133,8 @@ Stream a blob into the drive at `path`. Options include
 
 ```js
 {
-  executable: true | false // whether the blob is executable or not
+  executable: true | false, // whether the blob is executable or not
+  metadata: null // extended file information i.e. arbitrary JSON value
 }
 ```
 
