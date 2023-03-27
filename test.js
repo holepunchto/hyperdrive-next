@@ -696,6 +696,31 @@ test('drive.mirror()', async (t) => {
   t.alike(await b.get('/'), b4a.from('hello world'))
 })
 
+test.solo('checkout on a remote version not available locally', async (t) => {
+  const { swarm, drive, mirror } = await testenv(t.teardown)
+
+  await drive.put('/a', '12')
+  await drive.put('/b', '34')
+
+  swarm.on('connection', (conn) => drive.corestore.replicate(conn))
+  swarm.join(drive.discoveryKey, { server: true, client: false })
+  await swarm.flush()
+
+  console.log(mirror.drive.core.length)
+
+  mirror.swarm.on('connection', (conn) => mirror.corestore.replicate(conn))
+  mirror.swarm.join(mirror.drive.discoveryKey, { server: false, client: true })
+  await mirror.swarm.flush()
+
+  // await mirror.drive.core.update({ wait: true })
+  console.log(mirror.drive.core.length)
+
+  const snapshot = drive.checkout(2)
+
+  console.log(await snapshot.get('/a'))
+  console.log(await snapshot.get('/b'))
+})
+
 async function testenv (teardown) {
   const corestore = new Corestore(ram)
   await corestore.ready()
