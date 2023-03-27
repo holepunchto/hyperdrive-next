@@ -715,7 +715,7 @@ test.solo('checkout on a remote version not available locally', async (t) => {
   // await mirror.drive.core.update({ wait: true })
   console.log(mirror.drive.core.length)
 
-  const snapshot = drive.checkout(2)
+  const snapshot = mirror.drive.checkout(2)
 
   console.log(await snapshot.get('/a'))
   console.log(await snapshot.get('/b'))
