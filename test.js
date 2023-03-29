@@ -366,11 +366,15 @@ test('watch() basic', async function (t) {
 
   const watcher = drive.watch()
 
-  await drive.put('/a.txt', buf)
+  eventFlush().then(async () => {
+    await drive.put('/a.txt', buf)
+  })
 
-  const { value: { current, previous } } = await watcher.next()
-  t.is(current.version, 2)
-  t.is(previous.version, 1)
+  for await (const { current, previous } of watcher) { // eslint-disable-line no-unreachable-loop
+    t.is(current.version, 2)
+    t.is(previous.version, 1)
+    break
+  }
 })
 
 test('watch(folder) basic', async function (t) {
