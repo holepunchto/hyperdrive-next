@@ -245,26 +245,13 @@ for await (const { current, previous } of watcher) {
 }
 ```
 
-Or manually calling `next()`:
-```js
-const { done, value } = await watcher.next()
-if (done) return
+Returns a new value after a change, `current` and `previous` are snapshots that are auto-closed before next value.
 
-console.log(value.current.version)
-console.log(value.previous.version)
-```
+Don't close those snapshots yourself because they're used internally, let them be auto-closed.
 
-Returns a new value after a file change, `current` and `previous` are snapshots that are auto-closed before next value.
+`watcher.destroy()`
 
-`watcher.destroy()`\
-Closes the watcher.
-
-`watcher.on('error', onerror)`\
-Critical and unexpected errors will be thrown, but watcher is normally graceful.\
-Also, watcher auto closes on errors.
-
-`watcher.on('close', onclose)`\
-Emitted after the watcher is closed.
+Stops the watcher. You could also stop it by using `break` in the loop.
 
 #### `const hypercore = drive.core`
 
