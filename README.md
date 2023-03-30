@@ -135,7 +135,7 @@ Deletes the blob containing the content of the `entry` at `path` from the underl
 
 #### `await drive.symlink(path, linkname)`
 
-Creates an entry in drive at `path` path that points to the entry at `linkname`.
+Creates an entry in drive at `path` that points to the entry at `linkname`.
 
 If a blob entry currently exists at `path` then it will get overwritten and `drive.get(key)` will return `null`, while `drive.entry(key)` will return the entry with symlink information.
 
