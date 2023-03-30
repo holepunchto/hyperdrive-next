@@ -243,7 +243,7 @@ Downloads the entries and blobs stored in the [ranges][core-range-docs] `dbRange
 
 #### `const done = drive.corestore.findingPeers()`
 
-Indicate to Hyperdrive that you're finding peers in the background, all operations will be on hold until this is done.
+Indicate to Hyperdrive that you're finding peers in the background, requests will be on hold until this is done.
 
 Call `done()` when your current discovery iteration is done, i.e. after `swarm.flush()` finishes.
 
