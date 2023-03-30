@@ -185,16 +185,13 @@ Returns a stream to read out the blob stored in the drive at `path`.
 `options` include:
 ```js
 {
-  start: Number,
+  start: Number, // `start` and `end` are inclusive
   end: Number,
-  length: Number,
+  length: Number, // `length` overrides `end`, they're not meant to be used together
   wait: true, // Wait for blocks to be downloaded
   timeout: 0 // Wait at max some milliseconds (0 means no timeout)
 }
 ```
-
-`start` and `end` are inclusive.\
-`length` overrides `end`, they're not meant to be used together.
 
 #### `const ws = drive.createWriteStream(path, [options])`
 
