@@ -251,6 +251,7 @@ Call `done()` when your current discovery iteration is done. If you're using Hyp
 
 Usage example:
 ```js
+const swarm = new Hyperswarm()
 const done = drive.corestore.findingPeers()
 swarm.on('connection', (socket) => drive.corestore.replicate(socket))
 swarm.join(drive.discoveryKey)
