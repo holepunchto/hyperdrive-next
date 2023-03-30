@@ -68,9 +68,13 @@ Use it once before reading synchronous properties like `drive.discoveryKey`, unl
 
 Fully close this drive, including its underlying Hypercore backed datastructures.
 
+#### `drive.db`
+
+The underlying Hyperbee backing the drive file structure.
+
 #### `drive.core`
 
-The underlying Hypercore backing the drive file structure.
+The Hypercore used for `drive.db`.
 
 #### `drive.key`
 
