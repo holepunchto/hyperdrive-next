@@ -239,7 +239,7 @@ Listens to changes that are on `folder`, by default `/`.
 
 Usage example:
 ```js
-for await (const { current, previous } of watcher) {
+for await (const [current, previous] of watcher) {
   console.log(current.version)
   console.log(previous.version)
 }

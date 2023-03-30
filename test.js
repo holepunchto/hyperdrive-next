@@ -370,7 +370,7 @@ test('watch() basic', async function (t) {
     await drive.put('/a.txt', buf)
   })
 
-  for await (const { current, previous } of watcher) { // eslint-disable-line no-unreachable-loop
+  for await (const [current, previous] of watcher) { // eslint-disable-line no-unreachable-loop
     t.is(current.version, 2)
     t.is(previous.version, 1)
     break
