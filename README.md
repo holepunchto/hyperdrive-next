@@ -50,11 +50,11 @@ ws.once('close', () => console.log('file saved'))
 
 ## API
 
-#### `const drive = new Hyperdrive(corestore, [key])`
+#### `const drive = new Hyperdrive(store, [key])`
 
-Creates a new Hyperdrive instance. `corestore` must be an instance of `Corestore`.
+Creates a new Hyperdrive instance. `store` must be an instance of `Corestore`.
 
-By default it uses the core at `{ name: 'db' }` from `corestore`, unless you set a `key`.
+By default it uses the core at `{ name: 'db' }` from `store`, unless you set a `key`.
 
 #### `await drive.ready()`
 
