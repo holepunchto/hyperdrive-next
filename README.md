@@ -235,6 +235,25 @@ In other words, downloads all the blobs added to `folder` up to `version` of the
 
 Downloads the entries and blobs stored in the [ranges][core-range-docs] `dbRanges` and `blobRanges`.
 
+#### `const done = drive.findingPeers()`
+
+Indicate to Hyperdrive that you're finding peers in the background.
+
+Call `done()` when your current discovery iteration is done. If you're using Hyperswarm, you'd normally call this after `swarm.flush()` finishes.
+
+#### `const updated = await drive.update([options])`
+
+Waits for initial proof of the new drive version until all `findingPeers` are done.
+
+`options` include:
+```js
+{
+  wait: false
+}
+```
+
+Use `drive.findingPeers()` or `{ wait: true }` to make await `drive.update()` blocking.
+
 #### `const blobs = await drive.getBlobs()`
 
 Returns the [Hyperblobs](https://github.com/holepunchto/hyperblobs) instance storing the blobs indexed by drive entries.
