@@ -200,7 +200,8 @@ Stream a blob into the drive at `path`.
 `options` include:
 ```js
 {
-  executable: Boolean
+  executable: Boolean,
+  metadata: null // Extended file information i.e. arbitrary JSON value
 }
 ```
 
