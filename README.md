@@ -66,6 +66,10 @@ Use it once before reading synchronous properties like `drive.discoveryKey`, unl
 
 Fully close this drive, including its underlying Hypercore backed datastructures.
 
+#### `drive.corestore`
+
+The Corestore instance used as storage.
+
 #### `drive.db`
 
 The underlying Hyperbee backing the drive file structure.
@@ -237,11 +241,23 @@ In other words, downloads all the blobs added to `folder` up to `version` of the
 
 Downloads the entries and blobs stored in the [ranges][core-range-docs] `dbRanges` and `blobRanges`.
 
-#### `const done = drive.findingPeers()`
+#### `const done = drive.corestore.findingPeers()`
 
 Indicate to Hyperdrive that you're finding peers in the background, all operations will be on hold until this is done.
 
 Call `done()` when your current discovery iteration is done. If you're using Hyperswarm, you'd normally call this after `swarm.flush()` finishes.
+
+#### `const stream = drive.corestore.replicate(isInitiatorOrStream)`
+
+Usage example:
+```js
+const done = drive.corestore.findingPeers()
+swarm.on('connection', (socket) => drive.corestore.replicate(socket))
+swarm.join(drive.discoveryKey)
+swarm.flush().then(done, done)
+```
+
+See more about how replicate works at [corestore.replicate][store-replicate-docs].
 
 #### `const updated = await drive.update([options])`
 
@@ -254,7 +270,7 @@ Waits for initial proof of the new drive version until all `findingPeers` are do
 }
 ```
 
-Use `drive.findingPeers()` or `{ wait: true }` to make await `drive.update()` blocking.
+Use `drive.corestore.findingPeers()` or `{ wait: true }` to make await `drive.update()` blocking.
 
 #### `const blobs = await drive.getBlobs()`
 
@@ -273,3 +289,4 @@ const buffer2 = await blobs.get(entry.value.blob)
 ```
 
 [core-range-docs]: https://github.com/holepunchto/hypercore#const-range--coredownloadrange
+[store-replicate-docs]: https://github.com/holepunchto/corestore#const-stream--storereplicateoptsorstream
