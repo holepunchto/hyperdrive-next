@@ -139,11 +139,11 @@ If a blob entry currently exists at `path` then it will get overwritten and `dri
 
 #### `const batch = drive.batch()`
 
-Atomically mutate the drive, has the same interface as Hyperdrive.
+Useful for atomically mutate the drive, has the same interface as Hyperdrive.
 
 #### `await batch.flush()`
 
-Useful for atomically commit a batch of mutations to the underlying drive.
+Commit a batch of mutations to the underlying drive.
 
 #### `const stream = drive.list(folder, [options])`
 
