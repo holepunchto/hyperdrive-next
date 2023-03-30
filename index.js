@@ -58,7 +58,11 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   findingPeers () {
-    return this.db.feed.findingPeers()
+    return this.db.corestore.findingPeers()
+  }
+
+  replicate (opts) {
+    return this.db.corestore.replicate(opts)
   }
 
   update (opts) {

@@ -238,19 +238,19 @@ In other words, downloads all the blobs added to `folder` up to `version` of the
 
 Downloads the entries and blobs stored in the [ranges][core-range-docs] `dbRanges` and `blobRanges`.
 
-#### `const done = drive.corestore.findingPeers()`
+#### `const done = drive.findingPeers()`
 
 Indicate to Hyperdrive that you're finding peers in the background, requests will be on hold until this is done.
 
 Call `done()` when your current discovery iteration is done, i.e. after `swarm.flush()` finishes.
 
-#### `const stream = drive.corestore.replicate(isInitiatorOrStream)`
+#### `const stream = drive.replicate(isInitiatorOrStream)`
 
 Usage example:
 ```js
 const swarm = new Hyperswarm()
-const done = drive.corestore.findingPeers()
-swarm.on('connection', (socket) => drive.corestore.replicate(socket))
+const done = drive.findingPeers()
+swarm.on('connection', (socket) => drive.replicate(socket))
 swarm.join(drive.discoveryKey)
 swarm.flush().then(done, done)
 ```
@@ -268,7 +268,7 @@ Waits for initial proof of the new drive version until all `findingPeers` are do
 }
 ```
 
-Use `drive.corestore.findingPeers()` or `{ wait: true }` to make await `drive.update()` blocking.
+Use `drive.findingPeers()` or `{ wait: true }` to make await `drive.update()` blocking.
 
 #### `const blobs = await drive.getBlobs()`
 
