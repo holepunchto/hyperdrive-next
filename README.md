@@ -84,7 +84,9 @@ The public key of the Hypercore backing the drive.
 
 #### `drive.discoveryKey`
 
-The hash of the public key of the Hypercore backing the drive, can be used to seed the drive using Hyperswarm.
+The hash of the public key of the Hypercore backing the drive.
+
+Can be used as a `topic` to seed the drive using Hyperswarm.
 
 #### `drive.contentKey`
 
