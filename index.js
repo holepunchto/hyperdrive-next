@@ -62,7 +62,7 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   update (opts) {
-    return this.db.feed.update(opts)
+    return this.db.update(opts)
   }
 
   ready () {
