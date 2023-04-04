@@ -61,8 +61,8 @@ module.exports = class Hyperdrive extends EventEmitter {
     return this.db.feed.findingPeers()
   }
 
-  update (opts) {
-    return this.db.feed.update(opts)
+  update () {
+    return this.db.feed.update()
   }
 
   ready () {
