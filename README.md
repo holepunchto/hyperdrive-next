@@ -54,7 +54,7 @@ ws.once('close', () => console.log('file saved'))
 
 Creates a new Hyperdrive instance. `store` must be an instance of `Corestore`.
 
-By default it uses the core at `{ name: 'db' }` from `store`, unless you set a `key`.
+By default it uses the core at `{ name: 'db' }` from `store`, unless you set the public `key`.
 
 #### `await drive.ready()`
 
