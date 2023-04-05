@@ -359,7 +359,7 @@ test('symlink(key, linkname) resolve key path', async function (t) {
 })
 
 test('watch() basic', async function (t) {
-  t.plan(2)
+  t.plan(4)
 
   const { drive } = await testenv(t.teardown)
   const buf = b4a.from('hi')
@@ -371,6 +371,8 @@ test('watch() basic', async function (t) {
   })
 
   for await (const [current, previous] of watcher) { // eslint-disable-line no-unreachable-loop
+    t.ok(current instanceof Hyperdrive)
+    t.ok(previous instanceof Hyperdrive)
     t.is(current.version, 2)
     t.is(previous.version, 1)
     break

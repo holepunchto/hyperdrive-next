@@ -64,10 +64,12 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   checkout (len) {
+    const snapshot = typeof len === 'object' ? len : this.db.checkout(len)
+
     return new Hyperdrive(this.corestore, this.key, {
       onwait: this._onwait,
       _checkout: this._checkout || this,
-      _db: this.db.checkout(len),
+      _db: snapshot,
       _files: null
     })
   }
@@ -250,7 +252,10 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
-    return this.files.watch({ gt: folder + '/', lt: folder + '0' })
+    const range = { gt: folder + '/', lt: folder + '0' }
+    const map = (snapshot) => this.checkout(snapshot.version)
+
+    return this.files.watch(range, { map })
   }
 
   diff (length, folder, opts) {
