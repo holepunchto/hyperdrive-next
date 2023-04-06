@@ -211,6 +211,7 @@ module.exports = class Hyperdrive extends EventEmitter {
     if (typeof folder === 'object' && folder && !opts) return this.diff(length, null, folder)
     if (folder) {
       if (folder.endsWith('/')) folder = folder.slice(0, -1)
+      if (folder) folder = normalizePath(folder)
       opts = { gt: folder + '/', lt: folder + '0', ...opts }
     }
     return this.files.createDiffStream(length, opts)
