@@ -142,7 +142,7 @@ Removes the `entry` at `path` from the drive. If a blob corresponding to the ent
 
 #### `await drive.clear(path)`
 
-Removes the `entry` at `path` from the drive, and also removes the corresponding blob from the underlying storage (unlike `drive.del(path)`, which leaves the blob be). Note that this is a destructive operation which also affects checkouts taken at a time before calling it.
+Deletes the blob containing the content of the `entry` at `path` from the underlying storage, but leaves the entry itself be (so the entry still exists in the database, but its content does not exist locally anymore). Note that this is a destructive operation which also affects checkouts taken at a time before calling it.
 
 #### `const hypercore = drive.core`
 

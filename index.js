@@ -198,11 +198,7 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   async clear (name) {
     const node = await this.entry(name)
-
-    const id = node?.value.blob
-    if (!id) return
-
-    await this.del(name)
+    if (node === null) return
 
     await this.getBlobs()
     await this.blobs.clear(node.value.blob)

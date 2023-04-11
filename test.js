@@ -706,10 +706,11 @@ test('drive.clear(path)', async (t) => {
 
   await drive.clear('/loc')
 
-  const content = await drive.get('/loc')
-  t.is(content, null) // File deleted
+  // Entry still exists (so file not deleted)
+  const nowEntry = await drive.entry('/loc')
+  t.alike(nowEntry, entry)
 
-  // And removed from storage
+  // But the blob is removed from storage
   const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
   t.is(nowContent, null)
 })
