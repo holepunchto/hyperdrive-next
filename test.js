@@ -710,7 +710,6 @@ test('drive.clear(path)', async (t) => {
   t.is(content, null) // File deleted
 
   // And removed from storage
-  console.log('get')
   const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
   t.is(nowContent, null)
 })
