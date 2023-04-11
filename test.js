@@ -696,6 +696,25 @@ test('drive.mirror()', async (t) => {
   t.alike(await b.get('/'), b4a.from('hello world'))
 })
 
+test.solo('drive.clear(path)', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('/loc', 'hello world')
+
+  const infoPre = await drive.blobs.core.info({ storage: true })
+  await drive.clear('/loc')
+  const infoPost = await drive.blobs.core.info({ storage: true })
+
+  const entry = await drive.get('/loc')
+  t.is(entry, null) // File deleted
+
+  // And removed from storage
+  // TODO: figure out how to detect removal here
+  console.log('From', infoPre, '\nTo', infoPost)
+  const bytesCleared = infoPre.storage.blocks - infoPost.storage.blocks
+  // At least 11 bytes removed (11 chars of hello world)
+  t.is(bytesCleared >= 11, true)
+})
+
 async function testenv (teardown) {
   const corestore = new Corestore(ram)
   await corestore.ready()

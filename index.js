@@ -196,6 +196,18 @@ module.exports = class Hyperdrive extends EventEmitter {
     return this.files.del(normalizePath(name))
   }
 
+  async clear (name) {
+    const node = await this.entry(name)
+
+    const id = node?.value.blob
+    if (!id) return
+
+    await this.del(name)
+
+    await this.getBlobs()
+    await this.blobs.clear(node.value.blob)
+  }
+
   async symlink (name, dst, { metadata = null } = {}) {
     if (!this.opened) await this.ready()
     return this.files.put(normalizePath(name), { executable: false, linkname: dst, blob: null, metadata })
