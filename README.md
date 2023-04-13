@@ -94,7 +94,7 @@ The public key of the [Hyperblobs](https://github.com/holepunchto/hyperblobs) in
 
 #### `drive.version`
 
-Number that indicates how many modifications were made (Hypercore length), useful as a version identifier.
+Number that indicates how many modifications were made, useful as a version identifier.
 
 #### `drive.supportsMetadata`
 
@@ -137,7 +137,7 @@ Deletes the file at `path` from the drive.
 
 #### `await drive.clear(path)`
 
-Deletes the blob containing the content of the `entry` at `path` from the underlying storage, but leaves the entry itself be (so the entry still exists in the database, but its content does not exist locally anymore). Note that this is a destructive operation which also affects checkouts taken at a time before calling it.
+Deletes the blob from storage to free up space, but the file structure reference is kept.
 
 #### `await drive.symlink(path, linkname)`
 
