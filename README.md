@@ -200,42 +200,15 @@ Returns a read stream of entries in the drive.
 
 `options` are the same as the `options` to `Hyperbee().createReadStream(options)`.
 
-#### `await drive.put(path, blob, [options])`
+#### `const mirror = drive.mirror(out, [options])`
 
-Sets the `blob` in the drive at `path`.
+Efficiently mirror this drive into another. Returns a [`MirrorDrive`](https://github.com/holepunchto/mirror-drive#api) instance constructed with `options`.
 
-`path` should be a `utf8` string.
-`blob` should be a `Buffer`.
+Call `await mirror.done()` to wait for the mirroring to finish.
 
-`options` includes:
+#### `const watcher = db.watch([folder])`
 
-```js
-{
-  executable: true | false // whether the blob is executable or not
-}
-```
-
-#### `ws = drive.createWriteStream(path, [options])`
-
-Stream a blob into the drive at `path`. Options include
-
-```js
-{
-  executable: true | false // whether the blob is executable or not
-}
-```
-
-#### `await drive.del(path)`
-
-Removes the `entry` at `path` from the drive. If a blob corresponding to the entry at `path` exists, it is not currently deleted.
-
-#### `await drive.clear(path)`
-
-Deletes the blob containing the content of the `entry` at `path` from the underlying storage, but leaves the entry itself be (so the entry still exists in the database, but its content does not exist locally anymore). Note that this is a destructive operation which also affects checkouts taken at a time before calling it.
-
-#### `watcher = db.watch([folder])`
-
-Listens to changes that are on `folder`, by default `/`.
+Returns an iterator that listens on `folder` to yield changes, by default on `/`.
 
 Usage example:
 ```js
@@ -245,7 +218,7 @@ for await (const [current, previous] of watcher) {
 }
 ```
 
-Returns a new value after a change, `current` and `previous` are snapshots that are auto-closed before next value.
+Those `current` and `previous` are snapshots that are auto-closed before next value.
 
 Don't close those snapshots yourself because they're used internally, let them be auto-closed.
 
@@ -256,101 +229,6 @@ Waits until the watcher is loaded and detecting changes.
 `await watcher.destroy()`
 
 Stops the watcher. You could also stop it by using `break` in the loop.
-
-#### `const hypercore = drive.core`
-
-The underlying Hypercore backing the drive.
-
-#### `const buffer = drive.key`
-
-The public key of the Hypercore backing the drive.
-
-#### `const buffer = drive.discoveryKey`
-
-The hash of the public key of the Hypercore backing the drive, can be used to seed the drive using Hyperswarm.
-
-#### `const buffer = drive.contentKey`
-
-The public key of the Hyperblobs instance holding blobs associated with entries in the drive.
-
-#### `const integer = drive.version`
-
-The version (offset in the underlying Hypercore) of the drive.
-
-#### `const Hyperdrive = drive.checkout(version)`
-
-Checks out a read-only snapshot of a Hyperdrive at a particular version.
-
-```js
-const fs = require('fs')
-const Corestore = require('corestore')
-const Hyperdrive = require('hyperdrive')
-
-const drive = new Hyperdrive(new Corestore('storage'))
-
-await drive.put('/fst-file.txt', fs.readFileSync('fst-file.txt'))
-
-const version = drive.version
-
-await drive.put('/snd-file.txt', fs.readFileSync('snd-file.txt'))
-
-const snapshot = drive.checkout(version)
-
-console.log(await drive.get('/snd-file.txt')) // prints Buffer
-console.log(await snapshot.get('/snd-file.txt')) // prints null
-console.log(Buffer.compare(await drive.get('/fst-file.txt'), await snapshot.get('/fst-file.txt'))) // prints 0
-```
-
-#### `const stream = drive.diff(version, folder, [options])`
-Efficiently create a stream of the shallow changes to `folder` between `version` and `drive.version`. Each entry is sorted by key and looks like this:
-
-```
-{
-  left: <the entry in folder at drive.version for some path>,
-  right: <the entry in folder at drive.checkout(version) for some path>
-}
-```
-
-If an entry exists in `drive.version` of the `folder` but not in `version`, then left is set and right will be null, and vice versa.
-
-#### `await drive.downloadDiff(version, folder, [options])`
-
-Downloads all the blobs in `folder` corresponding to entries in `drive.checkout(version)` that are not in `drive.version`. In other words, downloads all the blobs added to `folder` up to `version` of the drive.
-
-#### `await drive.downloadRange(dbRanges, blobRanges)`
-
-Downloads the entries and blobs stored in the [ranges][core-range-docs] `dbRanges` and `blobRanges`.
-
-#### `const stream = drive.list(folder, [options])`
-
-Returns a stream of all entries in the drive at paths prefixed with `folder`. Options include:
-
-```js
-{
-  recursive: true | false // whether to descend into all subfolders or not
-}
-```
-
-#### `await drive.download(folder, [options])`
-
-Downloads the blobs corresponding to all entries in the drive at paths prefixed with `folder`. Options are the same as those for `drive.list(folder, [options])`.
-
-#### `const stream = drive.readdir(folder)`
-
-Returns a stream of all subpaths of entries in drive stored at paths prefixed by `folder`.
-
-```js
-await drive.put('/parent/child', Buffer.from('child'))
-await drive.put('/parent/sibling', Buffer.from('sibling'))
-for await (const path of drive.readdir('/parent')) console.log(path) // prints "child", then prints "sibling"
-```
-
->>>>>>> 3c19023 (Add drive.watch([folder], [onchange]))
-#### `const mirror = drive.mirror(out, [options])`
-
-Efficiently mirror this drive into another. Returns a [`MirrorDrive`](https://github.com/holepunchto/mirror-drive#api) instance constructed with `options`.
-
-Call `await mirror.done()` to wait for the mirroring to finish.
 
 #### `const rs = drive.createReadStream(path, [options])`
 
