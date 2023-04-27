@@ -715,6 +715,32 @@ test('drive.clear(path)', async (t) => {
   t.is(nowContent, null)
 })
 
+test.solo('drive.clear(path) clears older versions too', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('/loc', 'hello world old')
+  const oldEntry = await drive.entry('/loc')
+  const oldInitContent = await drive.blobs.get(oldEntry.value.blob, { wait: false })
+  t.alike(oldInitContent, b4a.from('hello world old'))
+
+  await drive.put('/loc', 'hello world new')
+
+  const entry = await drive.entry('/loc')
+  const initContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.alike(initContent, b4a.from('hello world new'))
+
+  await drive.clear('/loc')
+
+  // Entry still exists (so file not deleted)
+  const nowEntry = await drive.entry('/loc')
+  t.alike(nowEntry, entry)
+
+  // But both old and new blobs are removed from storage
+  const oldNowContent = await drive.blobs.get(oldEntry.value.blob, { wait: false })
+  t.is(oldNowContent, null)
+  const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.is(nowContent, null)
+})
+
 async function testenv (teardown) {
   const corestore = new Corestore(ram)
   await corestore.ready()
