@@ -23,11 +23,11 @@ module.exports = class Hyperdrive extends ReadyResource {
     this.blobs = null
     this.supportsMetadata = true
 
-    this.ready().catch(noop)
-
     this._openingBlobs = null
     this._checkout = _checkout || null
     this._batching = !!_files
+
+    this.ready().catch(noop)
   }
 
   [Symbol.asyncIterator] () {
