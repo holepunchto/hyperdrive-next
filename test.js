@@ -281,6 +281,17 @@ test('drive.entry(path) gets entry at path', async (t) => {
   }
 })
 
+test.solo('entry(key) cancelled when checkout closes', async function (t) {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('some', '1')
+
+  const snap = drive.checkout(3) // Future
+  const prom = snap.entry('some')
+
+  await snap.close()
+  await prom // TODO: Expected behaviour is probably an error?
+})
+
 test('entry(key) resolve key path', async function (t) {
   const { drive } = await testenv(t.teardown)
 
