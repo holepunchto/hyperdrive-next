@@ -8,7 +8,7 @@ const RAM = require('random-access-memory')
 const { discoveryKey } = require('hypercore-crypto')
 const { pipelinePromise: pipeline, Writable, Readable } = require('streamx')
 const testnet = require('@hyperswarm/testnet')
-const DHT = require('@hyperswarm/dht')
+const DHT = require('hyperdht')
 const Hyperswarm = require('hyperswarm')
 const b4a = require('b4a')
 
@@ -671,6 +671,32 @@ test('drive.close()', async (t) => {
   await drive.close()
 })
 
+test('drive.close() on snapshots--does not close parent', async (t) => {
+  const { drive } = await testenv(t.teardown)
+
+  await drive.put('/foo', b4a.from('bar'))
+
+  const checkout = drive.checkout(2)
+  await checkout.get('/foo')
+  await checkout.close()
+
+  // Main test is that there is no session_closed error on drive.get
+  const res = await drive.get('/foo')
+  t.alike(res, b4a.from('bar'))
+})
+
+test('drive.close() for future checkout', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('some', 'thing')
+  const checkout = drive.checkout(drive.length + 1)
+  await checkout.close()
+
+  t.is(checkout.closed, true)
+  t.is(checkout.db.core.closed, true)
+  t.is(drive.closed, false)
+  t.is(drive.db.core.closed, false)
+})
+
 test.skip('drive.findingPeers()', async (t) => {
   const { drive, corestore, swarm, mirror } = await testenv(t.teardown)
   await drive.put('/', b4a.from('/'))
@@ -713,6 +739,25 @@ test('blobs with writable drive', async (t) => {
   t.absent(drive.blobs)
   await drive.ready()
   t.ok(drive.blobs)
+})
+
+test('drive.clear(path)', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('/loc', 'hello world')
+
+  const entry = await drive.entry('/loc')
+  const initContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.alike(initContent, b4a.from('hello world'))
+
+  await drive.clear('/loc')
+
+  // Entry still exists (so file not deleted)
+  const nowEntry = await drive.entry('/loc')
+  t.alike(nowEntry, entry)
+
+  // But the blob is removed from storage
+  const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.is(nowContent, null)
 })
 
 async function testenv (teardown) {
