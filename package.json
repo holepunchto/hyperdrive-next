@@ -1,6 +1,6 @@
 {
   "name": "hyperdrive",
-  "version": "11.0.0-alpha.10",
+  "version": "11.0.0-alpha.15",
   "description": "Hyperdrive is a secure, real-time distributed file system",
   "main": "index.js",
   "files": [
@@ -22,19 +22,21 @@
   "homepage": "https://github.com/holepunchto/hyperdrive-next#readme",
   "dependencies": {
     "hyperbee": "^2.1.1",
-    "hyperblobs": "^2.0.0",
+    "hyperblobs": "^2.1.0",
     "is-options": "^1.0.2",
     "mirror-drive": "^1.2.0",
+    "ready-resource": "^1.0.0",
+    "safety-catch": "^1.0.2",
     "streamx": "^2.12.4",
     "unix-path-resolve": "^1.0.2"
   },
   "devDependencies": {
-    "@hyperswarm/dht": "^6.2.0",
     "@hyperswarm/testnet": "^3.0.0",
     "b4a": "^1.6.0",
     "brittle": "^3.1.0",
     "corestore": "^6.1.1",
     "hypercore-crypto": "^3.2.1",
+    "hyperdht": "^6.5.2",
     "hyperswarm": "^4.0.0",
     "random-access-memory": "^6.0.0",
     "standard": "^17.0.0"

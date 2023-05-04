@@ -1,13 +1,13 @@
 const Hyperbee = require('hyperbee')
 const Hyperblobs = require('hyperblobs')
 const isOptions = require('is-options')
-const { EventEmitter } = require('events')
 const { Writable, Readable } = require('streamx')
 const unixPathResolve = require('unix-path-resolve')
 const MirrorDrive = require('mirror-drive')
+const ReadyResource = require('ready-resource')
 const safetyCatch = require('safety-catch')
 
-module.exports = class Hyperdrive extends EventEmitter {
+module.exports = class Hyperdrive extends ReadyResource {
   constructor (corestore, key, opts = {}) {
     super()
 
@@ -24,14 +24,11 @@ module.exports = class Hyperdrive extends EventEmitter {
     this.blobs = null
     this.supportsMetadata = true
 
-    this.opening = this._open()
-    this.opening.catch(noop)
-    this.opened = false
-
     this._openingBlobs = null
     this._checkout = _checkout || null
     this._batching = !!_files
-    this._closing = null
+
+    this.ready().catch(noop)
   }
 
   [Symbol.asyncIterator] () {
@@ -51,7 +48,7 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   get core () {
-    return this.db.feed
+    return this.db.core
   }
 
   get version () {
@@ -59,21 +56,17 @@ module.exports = class Hyperdrive extends EventEmitter {
   }
 
   findingPeers () {
-    return this.db.feed.findingPeers()
+    return this.db.core.findingPeers()
   }
 
-  update () {
-    return this.db.feed.update()
-  }
-
-  ready () {
-    return this.opening
+  update (opts) {
+    return this.db.core.update(opts)
   }
 
   checkout (len) {
     return new Hyperdrive(this.corestore, this.key, {
       onwait: this._onwait,
-      _checkout: this,
+      _checkout: this._checkout || this,
       _db: this.db.checkout(len),
       _files: null
     })
@@ -92,23 +85,23 @@ module.exports = class Hyperdrive extends EventEmitter {
     return this.files.flush()
   }
 
-  close () {
-    if (this._closing) return this._closing
-    this._closing = this._close()
-    return this._closing
-  }
-
   async _close () {
     if (this._batching) return this.files.close()
-
     try {
-      await this.ready()
-      await this.blobs?.core?.close()
-      await this.db?.feed?.close()
-      await this.corestore?.close()
-    } catch (e) { safetyCatch(e) }
+      if (this.blobs !== null && (this._checkout === null || this.blobs !== this._checkout.blobs)) {
+        await this.blobs.core.close()
+      }
+      await this.db.close()
+    } catch (e) {
+      safetyCatch(e)
+    }
 
-    this.emit('close')
+    if (this._checkout) return
+    try {
+      await this.corestore.close()
+    } catch (e) {
+      safetyCatch(e)
+    }
   }
 
   async _openBlobsFromHeader (opts) {
@@ -142,7 +135,7 @@ module.exports = class Hyperdrive extends EventEmitter {
 
     await this._openBlobsFromHeader({ wait: false })
 
-    if (this.db.feed.writable && !this.blobs) {
+    if (this.db.core.writable && !this.blobs) {
       const blobsCore = this.corestore.get({
         name: 'blobs',
         cache: false,
@@ -152,6 +145,9 @@ module.exports = class Hyperdrive extends EventEmitter {
 
       this.blobs = new Hyperblobs(blobsCore)
       this.db.metadata.contentFeed = this.blobs.core.key
+
+      this.emit('blobs', this.blobs)
+      this.emit('content-key', blobsCore.key)
     }
 
     await this.db.ready()
@@ -161,9 +157,6 @@ module.exports = class Hyperdrive extends EventEmitter {
       this._openingBlobs = this._openBlobsFromHeader()
       this._openingBlobs.catch(noop)
     }
-
-    this.opened = true
-    this.emit('ready')
   }
 
   async getBlobs () {
@@ -197,6 +190,14 @@ module.exports = class Hyperdrive extends EventEmitter {
     return this.files.del(normalizePath(name))
   }
 
+  async clear (name) {
+    const node = await this.entry(name)
+    if (node === null) return
+
+    await this.getBlobs()
+    await this.blobs.clear(node.value.blob)
+  }
+
   async symlink (name, dst, { metadata = null } = {}) {
     if (!this.opened) await this.ready()
     return this.files.put(normalizePath(name), { executable: false, linkname: dst, blob: null, metadata })
@@ -212,6 +213,7 @@ module.exports = class Hyperdrive extends EventEmitter {
     if (typeof folder === 'object' && folder && !opts) return this.diff(length, null, folder)
     if (folder) {
       if (folder.endsWith('/')) folder = folder.slice(0, -1)
+      if (folder) folder = normalizePath(folder)
       opts = { gt: folder + '/', lt: folder + '0', ...opts }
     }
     return this.files.createDiffStream(length, opts)
@@ -240,7 +242,7 @@ module.exports = class Hyperdrive extends EventEmitter {
     await this.ready()
 
     for (const range of dbRanges) {
-      dls.push(this.db.feed.download(range))
+      dls.push(this.db.core.download(range))
     }
 
     const blobs = await this.getBlobs()
@@ -281,7 +283,10 @@ module.exports = class Hyperdrive extends EventEmitter {
   // atm always recursive, but we should add some depth thing to it
   list (folder = '/', { recursive = true } = {}) {
     if (typeof folder === 'object') return this.list(undefined, folder)
+
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
+    if (folder) folder = normalizePath(folder)
+
     if (recursive === false) return shallowReadStream(this.files, folder, false)
     // '0' is binary +1 of /
     return folder ? this.entries({ gt: folder + '/', lt: folder + '0' }) : this.entries()
@@ -289,6 +294,8 @@ module.exports = class Hyperdrive extends EventEmitter {
 
   readdir (folder = '/') {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
+    if (folder) folder = normalizePath(folder)
+
     return shallowReadStream(this.files, folder, true)
   }
 
@@ -420,6 +427,10 @@ module.exports = class Hyperdrive extends EventEmitter {
         cb(err)
       }
     }
+  }
+
+  static normalizePath (name) {
+    return normalizePath(name)
   }
 }
 

@@ -4,11 +4,11 @@ const path = require('path')
 const { once } = require('events')
 const test = require('brittle')
 const Corestore = require('corestore')
-const ram = require('random-access-memory')
+const RAM = require('random-access-memory')
 const { discoveryKey } = require('hypercore-crypto')
 const { pipelinePromise: pipeline, Writable, Readable } = require('streamx')
 const testnet = require('@hyperswarm/testnet')
-const DHT = require('@hyperswarm/dht')
+const DHT = require('hyperdht')
 const Hyperswarm = require('hyperswarm')
 const b4a = require('b4a')
 
@@ -668,7 +668,7 @@ test('drive.close()', async (t) => {
   const blobs = await drive.getBlobs()
   blobs.core.on('close', () => t.ok(true))
   drive.core.on('close', () => t.ok(true))
-  drive.db.feed.on('close', () => t.ok(true))
+  drive.db.core.on('close', () => t.ok(true))
   await drive.close()
 
   t.ok(drive.corestore._closing)
@@ -677,8 +677,8 @@ test('drive.close()', async (t) => {
 test('drive.close() with openBlobsFromHeader waiting in the background', async (t) => {
   t.plan(3)
 
-  const corestore = new Corestore(ram)
-  const disconnectedCoreKey = b4a.from('a'.repeat(64))
+  const corestore = new Corestore(RAM)
+  const disconnectedCoreKey = b4a.from('a'.repeat(64), 'hex')
   const drive = new Hyperdrive(corestore, disconnectedCoreKey)
   await drive.ready()
   // length 0 (unavailable), so _openBlobsFromHeader will be awaiting its header
@@ -688,6 +688,32 @@ test('drive.close() with openBlobsFromHeader waiting in the background', async (
   await drive.close()
 
   t.ok(drive.corestore._closing)
+})
+
+test('drive.close() on snapshots--does not close parent', async (t) => {
+  const { drive } = await testenv(t.teardown)
+
+  await drive.put('/foo', b4a.from('bar'))
+
+  const checkout = drive.checkout(2)
+  await checkout.get('/foo')
+  await checkout.close()
+
+  // Main test is that there is no session_closed error on drive.get
+  const res = await drive.get('/foo')
+  t.alike(res, b4a.from('bar'))
+})
+
+test('drive.close() for future checkout', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('some', 'thing')
+  const checkout = drive.checkout(drive.length + 1)
+  await checkout.close()
+
+  t.is(checkout.closed, true)
+  t.is(checkout.db.core.closed, true)
+  t.is(drive.closed, false)
+  t.is(drive.db.core.closed, false)
 })
 
 test.skip('drive.findingPeers()', async (t) => {
@@ -715,8 +741,46 @@ test('drive.mirror()', async (t) => {
   t.alike(await b.get('/'), b4a.from('hello world'))
 })
 
+test('blobs with writable drive', async (t) => {
+  t.plan(4)
+
+  const store = new Corestore(RAM)
+  const drive = new Hyperdrive(store)
+
+  drive.on('blobs', function (blobs) {
+    t.is(blobs, drive.blobs)
+  })
+
+  drive.on('content-key', function (key) {
+    t.alike(key, drive.blobs.core.key)
+  })
+
+  t.absent(drive.blobs)
+  await drive.ready()
+  t.ok(drive.blobs)
+})
+
+test('drive.clear(path)', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  await drive.put('/loc', 'hello world')
+
+  const entry = await drive.entry('/loc')
+  const initContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.alike(initContent, b4a.from('hello world'))
+
+  await drive.clear('/loc')
+
+  // Entry still exists (so file not deleted)
+  const nowEntry = await drive.entry('/loc')
+  t.alike(nowEntry, entry)
+
+  // But the blob is removed from storage
+  const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.is(nowContent, null)
+})
+
 async function testenv (teardown) {
-  const corestore = new Corestore(ram)
+  const corestore = new Corestore(RAM)
   await corestore.ready()
 
   const drive = new Hyperdrive(corestore)
@@ -730,7 +794,7 @@ async function testenv (teardown) {
   const mirror = {}
   mirror.swarm = new Hyperswarm({ dht: new DHT({ bootstrap }) })
   teardown(mirror.swarm.destroy.bind(mirror.swarm))
-  mirror.corestore = new Corestore(ram)
+  mirror.corestore = new Corestore(RAM)
   mirror.drive = new Hyperdrive(mirror.corestore, drive.key)
   await mirror.drive.ready()
 
