@@ -253,9 +253,9 @@ module.exports = class Hyperdrive extends ReadyResource {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
     const range = { gt: folder + '/', lt: folder + '0' }
-    const map = (snapshot) => this.checkout(snapshot.version)
+    const options = { map: this.checkout }
 
-    return this.files.watch(range, { map })
+    return this.files.watch(range, options)
   }
 
   diff (length, folder, opts) {
