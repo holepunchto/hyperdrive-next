@@ -684,7 +684,7 @@ test('drive.close() with openBlobsFromHeader waiting in the background', async (
   // length 0 (unavailable), so _openBlobsFromHeader will be awaiting its header
 
   drive.core.on('close', () => t.ok(true))
-  drive.db.feed.on('close', () => t.ok(true))
+  drive.db.core.on('close', () => t.ok(true))
   await drive.close()
 
   t.ok(drive.corestore._closing)
