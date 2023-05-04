@@ -248,7 +248,7 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   watch (folder) {
-    folder = normalizePath(folder || '')
+    folder = normalizePath(folder || '/')
 
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
