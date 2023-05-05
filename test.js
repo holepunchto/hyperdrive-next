@@ -749,7 +749,8 @@ test('drive.clear(path)', async (t) => {
   const initContent = await drive.blobs.get(entry.value.blob, { wait: false })
   t.alike(initContent, b4a.from('hello world'))
 
-  await drive.clear('/loc')
+  const res = await drive.clear('/loc')
+  t.is(res, undefined)
 
   // Entry still exists (so file not deleted)
   const nowEntry = await drive.entry('/loc')
@@ -758,6 +759,28 @@ test('drive.clear(path)', async (t) => {
   // But the blob is removed from storage
   const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
   t.is(nowContent, null)
+})
+
+test('drive.clear(path) with storageInfo', async (t) => {
+  const { drive } = await testenv(t.teardown)
+  const content = 'a'.repeat(1000 * 1000)
+  await drive.put('/loc', content)
+
+  const entry = await drive.entry('/loc')
+  const initContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.alike(initContent, b4a.from(content))
+
+  const storageInfo = await drive.clear('/loc', { storageInfo: true })
+
+  // Entry still exists (so file not deleted)
+  const nowEntry = await drive.entry('/loc')
+  t.alike(nowEntry, entry)
+
+  // But the blob is removed from storage
+  const nowContent = await drive.blobs.get(entry.value.blob, { wait: false })
+  t.is(nowContent, null)
+
+  t.is(storageInfo > 0, true)
 })
 
 async function testenv (teardown) {
