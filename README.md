@@ -298,3 +298,7 @@ const buffer2 = await blobs.get(entry.value.blob)
 
 [core-range-docs]: https://github.com/holepunchto/hypercore#const-range--coredownloadrange
 [store-replicate-docs]: https://github.com/holepunchto/corestore#const-stream--storereplicateoptsorstream
+
+## License
+
+Apache-2.0
