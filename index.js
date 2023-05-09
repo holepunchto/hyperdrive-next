@@ -186,7 +186,6 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   async del (name) {
-    if (!this.opened) await this.ready()
     return this.files.del(normalizePath(name))
   }
 
@@ -212,7 +211,6 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   async symlink (name, dst, { metadata = null } = {}) {
-    if (!this.opened) await this.ready()
     return this.files.put(normalizePath(name), { executable: false, linkname: dst, blob: null, metadata })
   }
 
