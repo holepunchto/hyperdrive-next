@@ -28,7 +28,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     this._checkout = _checkout || null
     this._batching = !!_files
 
-    this.ready().catch(noop)
+    this.ready().catch(safetyCatch)
   }
 
   [Symbol.asyncIterator] () {
@@ -155,7 +155,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     if (!this.blobs) {
       // eagerly load the blob store....
       this._openingBlobs = this._openBlobsFromHeader()
-      this._openingBlobs.catch(noop)
+      this._openingBlobs.catch(safetyCatch)
     }
   }
 
@@ -475,8 +475,6 @@ function shallowReadStream (files, folder, keys) {
     }
   })
 }
-
-function noop () {}
 
 function makeBee (key, corestore, onwait) {
   const metadataOpts = key
