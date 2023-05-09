@@ -750,7 +750,7 @@ test('drive.clear(path)', async (t) => {
   t.alike(initContent, b4a.from('hello world'))
 
   const res = await drive.clear('/loc')
-  t.is(res, undefined)
+  t.is(res, 0)
 
   // Entry still exists (so file not deleted)
   const nowEntry = await drive.entry('/loc')
@@ -771,6 +771,9 @@ test('drive.clear(path) with storageInfo', async (t) => {
   const b = new Hyperdrive(new Corestore(storage))
   const bytesCleared = await b.clear('/file', { storageInfo: true })
   t.is(bytesCleared, 0)
+
+  const bytesCleared2 = await b.clear('/not-exists', { storageInfo: true })
+  t.is(bytesCleared2, 0)
 })
 
 async function testenv (teardown) {
