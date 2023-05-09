@@ -761,6 +761,18 @@ test('drive.clear(path)', async (t) => {
   t.is(nowContent, null)
 })
 
+test('drive.clear(path) with storageInfo', async (t) => {
+  const storage = createStorage()
+
+  const a = new Hyperdrive(new Corestore(storage))
+  await a.put('/file', 'abc')
+  await a.close()
+
+  const b = new Hyperdrive(new Corestore(storage))
+  const bytesCleared = await b.clear('/file', { storageInfo: true })
+  t.is(bytesCleared, 0)
+})
+
 async function testenv (teardown) {
   const corestore = new Corestore(RAM)
   await corestore.ready()
@@ -817,4 +829,15 @@ async function streamToBuffer (stream) {
     chunks.push(chunk)
   }
   return b4a.concat(chunks)
+}
+
+function createStorage () {
+  const files = new Map()
+
+  return function (name) {
+    if (files.has(name)) return files.get(name).clone()
+    const storage = new RAM()
+    files.set(name, storage)
+    return storage
+  }
 }
