@@ -988,6 +988,7 @@ function createTmpDir (t) {
   const dir = fs.mkdtempSync(tmpdir)
   t.teardown(() => fs.promises.rm(dir, { recursive: true }))
   return dir
+}
 
 function eventFlush () {
   return new Promise(resolve => setImmediate(resolve))
