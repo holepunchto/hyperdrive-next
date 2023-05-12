@@ -4,6 +4,7 @@ const isOptions = require('is-options')
 const { Writable, Readable } = require('streamx')
 const unixPathResolve = require('unix-path-resolve')
 const MirrorDrive = require('mirror-drive')
+const SubEncoder = require('sub-encoder')
 const ReadyResource = require('ready-resource')
 const safetyCatch = require('safety-catch')
 
@@ -20,6 +21,8 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     this.corestore = corestore
     this.db = _db || makeBee(key, corestore, this._onwait)
+    this.enc = new SubEncoder({ keyEncoding: this.db.keyEncoding })
+    this.sub = this.enc.sub('files')
     this.files = _files || this.db.sub('files')
     this.blobs = null
     this.supportsMetadata = true
@@ -252,10 +255,10 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
-    const range = { gt: folder + '/', lt: folder + '0' }
+    const range = this.sub.range({ gt: folder + '/', lt: folder + '0' })
     const options = { map: this.checkout }
 
-    return this.files.watch(range, options)
+    return this.db.watch(range, options)
   }
 
   diff (length, folder, opts) {
