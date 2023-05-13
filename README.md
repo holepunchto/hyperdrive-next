@@ -118,12 +118,6 @@ It also returns `null` for symbolic links.
 }
 ```
 
-#### `const stream = drive.createReadStream(path, [options])`
-
-Returns a stream that can be used to read out the blob stored in the drive at `path`.
-
-`options` are the same as the `options` to `Hyperblobs().createReadStream(path, options)`. Including `wait` and `timeout` options.
-
 #### `const entry = await drive.entry(path, [options])`
 
 Returns the entry at `path` in the drive. It looks like this:
@@ -144,6 +138,8 @@ Returns the entry at `path` in the drive. It looks like this:
   }
 }
 ```
+
+`options` are the same as for `drive.get(path, options)`.
 
 #### `const exists = await drive.exists(path)`
 
