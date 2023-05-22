@@ -663,19 +663,18 @@ test('batch.list()', async (t) => {
 })
 
 test('drive.close()', async (t) => {
-  t.plan(4)
+  t.plan(3)
   const { drive } = await testenv(t.teardown)
   const blobs = await drive.getBlobs()
   blobs.core.on('close', () => t.ok(true))
   drive.core.on('close', () => t.ok(true))
-  drive.db.core.on('close', () => t.ok(true))
   await drive.close()
 
   t.ok(drive.corestore.closed)
 })
 
 test('drive.close() with openBlobsFromHeader waiting in the background', async (t) => {
-  t.plan(3)
+  t.plan(2)
 
   const corestore = new Corestore(RAM)
   const disconnectedCoreKey = b4a.from('a'.repeat(64), 'hex')
@@ -684,7 +683,6 @@ test('drive.close() with openBlobsFromHeader waiting in the background', async (
   // length 0 (unavailable), so _openBlobsFromHeader will be awaiting its header
 
   drive.core.on('close', () => t.ok(true))
-  drive.db.core.on('close', () => t.ok(true))
   await drive.close()
 
   t.ok(drive.corestore.closed)
