@@ -671,7 +671,7 @@ test('drive.close()', async (t) => {
   drive.db.core.on('close', () => t.ok(true))
   await drive.close()
 
-  t.ok(drive.corestore._closing)
+  t.ok(drive.corestore.closed)
 })
 
 test('drive.close() with openBlobsFromHeader waiting in the background', async (t) => {
@@ -687,7 +687,7 @@ test('drive.close() with openBlobsFromHeader waiting in the background', async (
   drive.db.core.on('close', () => t.ok(true))
   await drive.close()
 
-  t.ok(drive.corestore._closing)
+  t.ok(drive.corestore.closed)
 })
 
 test('drive.close() on snapshots--does not close parent', async (t) => {
