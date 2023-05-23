@@ -8,6 +8,11 @@ const ReadyResource = require('ready-resource')
 const safetyCatch = require('safety-catch')
 const SubEncoder = require('sub-encoder')
 
+const dbKeyEncoding = 'utf-8'
+const filesSub = (new SubEncoder()).sub('files', {
+  keyEncoding: dbKeyEncoding
+})
+
 module.exports = class Hyperdrive extends ReadyResource {
   constructor (corestore, key, opts = {}) {
     super()
@@ -21,9 +26,6 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     this.corestore = corestore
     this.db = _db || makeBee(key, corestore, this._onwait)
-    this.filesSub = (new SubEncoder()).sub('files', {
-      keyEncoding: this.db.keyEncoding
-    })
 
     this.blobs = _blobs || null
     this.supportsMetadata = true
@@ -191,12 +193,12 @@ module.exports = class Hyperdrive extends ReadyResource {
     return this.db.put(
       normalizePath(name),
       { executable, linkname: null, blob: id, metadata },
-      { keyEncoding: this.filesSub }
+      { keyEncoding: filesSub }
     )
   }
 
   async del (name) {
-    return this.db.del(normalizePath(name), { keyEncoding: this.filesSub })
+    return this.db.del(normalizePath(name), { keyEncoding: filesSub })
   }
 
   async clear (name, opts) {
@@ -268,12 +270,12 @@ module.exports = class Hyperdrive extends ReadyResource {
     return this.db.put(
       normalizePath(name),
       { executable: false, linkname: dst, blob: null, metadata },
-      { keyEncoding: this.filesSub }
+      { keyEncoding: filesSub }
     )
   }
 
   entry (name, opts = {}) {
-    opts = { ...opts, keyEncoding: this.filesSub }
+    opts = { ...opts, keyEncoding: filesSub }
 
     return typeof name === 'string'
       ? this.db.get(normalizePath(name), opts)
@@ -291,7 +293,7 @@ module.exports = class Hyperdrive extends ReadyResource {
       if (folder) folder = normalizePath(folder)
       opts = { gt: folder + '/', lt: folder + '0', ...opts }
     }
-    opts = { ...opts, keyEncoding: this.filesSub }
+    opts = { ...opts, keyEncoding: filesSub }
     return this.db.createDiffStream(length, opts)
   }
 
@@ -334,7 +336,7 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   entries (opts = {}) {
-    opts = { ...opts, keyEncoding: this.filesSub }
+    opts = { ...opts, keyEncoding: filesSub }
     return this.db.createReadStream(opts)
   }
 
@@ -364,7 +366,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
     if (folder) folder = normalizePath(folder)
 
-    if (recursive === false) return shallowReadStream(this.db, folder, false, this.filesSub)
+    if (recursive === false) return shallowReadStream(this.db, folder, false, filesSub)
     // '0' is binary +1 of /
     return folder ? this.entries({ gt: folder + '/', lt: folder + '0' }) : this.entries()
   }
@@ -373,7 +375,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
     if (folder) folder = normalizePath(folder)
 
-    return shallowReadStream(this.db, folder, true, this.filesSub)
+    return shallowReadStream(this.db, folder, true, filesSub)
   }
 
   mirror (out, opts) {
@@ -497,7 +499,7 @@ module.exports = class Hyperdrive extends ReadyResource {
       self.db.put(
         normalizePath(name),
         { executable, linkname: null, blob: ws.id, metadata },
-        { keyEncoding: self.filesSub }
+        { keyEncoding: filesSub }
       ).then(() => cb(null), cb)
     }
 
@@ -554,7 +556,7 @@ function makeBee (key, corestore, onwait) {
     : { name: 'db', cache: true, onwait }
   const core = corestore.get(metadataOpts)
   const metadata = { contentFeed: null }
-  return new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json', metadata })
+  return new Hyperbee(core, { keyEncoding: dbKeyEncoding, valueEncoding: 'json', metadata })
 }
 
 function normalizePath (name) {
