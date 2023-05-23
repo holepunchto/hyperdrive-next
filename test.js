@@ -657,7 +657,6 @@ test('batch.list()', async (t) => {
   const nil = b4a.from('nil')
   await drive.put('/x', nil)
   const batch = drive.batch()
-
   for await (const entry of batch.list()) {
     t.is(entry.key, '/x')
   }
