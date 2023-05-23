@@ -652,10 +652,12 @@ test('drive.batch() & drive.flush()', async (t) => {
 })
 
 test('batch.list()', async (t) => {
+  t.plan(1)
   const { drive } = await testenv(t.teardown)
   const nil = b4a.from('nil')
   await drive.put('/x', nil)
   const batch = drive.batch()
+
   for await (const entry of batch.list()) {
     t.is(entry.key, '/x')
   }
