@@ -8,9 +8,9 @@ const ReadyResource = require('ready-resource')
 const safetyCatch = require('safety-catch')
 const SubEncoder = require('sub-encoder')
 
-const dbKeyEncoding = 'utf-8'
-const filesSub = (new SubEncoder()).sub('files', {
-  keyEncoding: dbKeyEncoding
+const DB_KEY_ENCODING = 'utf-8'
+const FILES_SUB = (new SubEncoder()).sub('files', {
+  keyEncoding: DB_KEY_ENCODING
 })
 
 module.exports = class Hyperdrive extends ReadyResource {
@@ -193,12 +193,12 @@ module.exports = class Hyperdrive extends ReadyResource {
     return this.db.put(
       normalizePath(name),
       { executable, linkname: null, blob: id, metadata },
-      { keyEncoding: filesSub }
+      { keyEncoding: FILES_SUB }
     )
   }
 
   async del (name) {
-    return this.db.del(normalizePath(name), { keyEncoding: filesSub })
+    return this.db.del(normalizePath(name), { keyEncoding: FILES_SUB })
   }
 
   async clear (name, opts) {
@@ -270,12 +270,12 @@ module.exports = class Hyperdrive extends ReadyResource {
     return this.db.put(
       normalizePath(name),
       { executable: false, linkname: dst, blob: null, metadata },
-      { keyEncoding: filesSub }
+      { keyEncoding: FILES_SUB }
     )
   }
 
   entry (name, opts = {}) {
-    opts = { ...opts, keyEncoding: filesSub }
+    opts = { ...opts, keyEncoding: FILES_SUB }
 
     return typeof name === 'string'
       ? this.db.get(normalizePath(name), opts)
@@ -293,7 +293,7 @@ module.exports = class Hyperdrive extends ReadyResource {
       if (folder) folder = normalizePath(folder)
       opts = { gt: folder + '/', lt: folder + '0', ...opts }
     }
-    opts = { ...opts, keyEncoding: filesSub }
+    opts = { ...opts, keyEncoding: FILES_SUB }
     return this.db.createDiffStream(length, opts)
   }
 
@@ -336,7 +336,7 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   entries (opts = {}) {
-    opts = { ...opts, keyEncoding: filesSub }
+    opts = { ...opts, keyEncoding: FILES_SUB }
     return this.db.createReadStream(opts)
   }
 
@@ -366,7 +366,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
     if (folder) folder = normalizePath(folder)
 
-    if (recursive === false) return shallowReadStream(this.db, folder, false, filesSub)
+    if (recursive === false) return shallowReadStream(this.db, folder, false, FILES_SUB)
     // '0' is binary +1 of /
     return folder ? this.entries({ gt: folder + '/', lt: folder + '0' }) : this.entries()
   }
@@ -375,7 +375,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
     if (folder) folder = normalizePath(folder)
 
-    return shallowReadStream(this.db, folder, true, filesSub)
+    return shallowReadStream(this.db, folder, true, FILES_SUB)
   }
 
   mirror (out, opts) {
@@ -499,7 +499,7 @@ module.exports = class Hyperdrive extends ReadyResource {
       self.db.put(
         normalizePath(name),
         { executable, linkname: null, blob: ws.id, metadata },
-        { keyEncoding: filesSub }
+        { keyEncoding: FILES_SUB }
       ).then(() => cb(null), cb)
     }
 
@@ -556,7 +556,7 @@ function makeBee (key, corestore, onwait) {
     : { name: 'db', cache: true, onwait }
   const core = corestore.get(metadataOpts)
   const metadata = { contentFeed: null }
-  return new Hyperbee(core, { keyEncoding: dbKeyEncoding, valueEncoding: 'json', metadata })
+  return new Hyperbee(core, { keyEncoding: DB_KEY_ENCODING, valueEncoding: 'json', metadata })
 }
 
 function normalizePath (name) {
