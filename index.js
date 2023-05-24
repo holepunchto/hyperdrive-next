@@ -65,7 +65,7 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   checkout (len) {
-    const snapshot = typeof len === 'object' ? len : this.db.checkout(len)
+    const snapshot = typeof len === 'object' ? this.db.checkout(len.version) : this.db.checkout(len)
 
     return new Hyperdrive(this.corestore, this.key, {
       onwait: this._onwait,
