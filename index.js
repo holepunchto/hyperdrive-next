@@ -21,8 +21,6 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     this.corestore = corestore
     this.db = _db || makeBee(key, corestore, this._onwait)
-    this.enc = new SubEncoder({ keyEncoding: this.db.keyEncoding })
-    this.sub = this.enc.sub('files')
     this.files = _files || this.db.sub('files')
     this.blobs = null
     this.supportsMetadata = true
@@ -255,10 +253,12 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
-    const range = this.sub.range({ gt: folder + '/', lt: folder + '0' })
-    const options = { map: this.checkout }
+    const enc = new SubEncoder()
+    const files = enc.sub('files', this.db.keyEncoding)
 
-    return this.db.watch(range, options)
+    const options = { keyEncoding: files, map: this.checkout }
+
+    return this.db.watch({ gt: folder + '/', lt: folder + '0' }, options)
   }
 
   diff (length, folder, opts) {
