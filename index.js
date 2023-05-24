@@ -193,53 +193,23 @@ module.exports = class Hyperdrive extends ReadyResource {
   async clear (name, opts) {
     if (!this.opened) await this.ready()
 
-    const diffing = !!(opts && opts.diff)
-
-    let node = null
-
-    try {
-      node = await this.entry(name, { wait: false })
-    } catch {
-      // do nothing, prop not available
-    }
-
-    const infoBefore = diffing === true
-      ? await this.blobs.core.info({ storage: true })
-      : null
+    const node = await this.entry(name, { wait: false }).catch(nullifyCatch)
 
     if (node !== null && this.blobs !== null) {
-      await this.blobs.clear(node.value.blob)
+      return this.blobs.clear(node.value.blob, opts)
     }
 
-    if (diffing === false) return null
-
-    const infoAfter = await this.blobs.core.info({ storage: true })
-
-    return {
-      blocks: infoBefore.storage.blocks - infoAfter.storage.blocks
-    }
+    return (opts && opts.diff) ? { blocks: 0 } : null
   }
 
   async clearAll (opts) {
     if (!this.opened) await this.ready()
 
-    const diffing = !!(opts && opts.diff)
-
-    const infoBefore = diffing === true
-      ? await this.blobs.core.info({ storage: true })
-      : null
-
     if (this.blobs !== null) {
-      await this.blobs.core.clear(0, this.blobs.core.length)
+      return this.blobs.core.clear(0, this.blobs.core.length, opts)
     }
 
-    if (diffing === false) return null
-
-    const infoAfter = await this.blobs.core.info({ storage: true })
-
-    return {
-      blocks: infoBefore.storage.blocks - infoAfter.storage.blocks
-    }
+    return (opts && opts.diff) ? { blocks: 0 } : null
   }
 
   async purge () {
@@ -537,4 +507,9 @@ function makeBee (key, corestore, onwait) {
 
 function normalizePath (name) {
   return unixPathResolve('/', name)
+}
+
+function nullifyCatch (err) {
+  safetyCatch(err)
+  return null
 }
