@@ -64,13 +64,17 @@ module.exports = class Hyperdrive extends ReadyResource {
     return this.db.core.update(opts)
   }
 
-  checkout (len) {
+  _makeCheckout (snapshot) {
     return new Hyperdrive(this.corestore, this.key, {
       onwait: this._onwait,
       _checkout: this._checkout || this,
-      _db: this.db.checkout(len),
+      _db: snapshot,
       _files: null
     })
+  }
+
+  checkout (version) {
+    return this._makeCheckout(this.db.checkout(version))
   }
 
   batch () {
@@ -253,7 +257,7 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     const encoder = new SubEncoder()
     const files = encoder.sub('files', this.db.keyEncoding)
-    const options = { map: (snap) => this.checkout(snap.version) }
+    const options = { map: (snap) => this._makeCheckout(snap) }
 
     return this.db.watch({ gt: folder + '/', lt: folder + '0' }, options)
   }
