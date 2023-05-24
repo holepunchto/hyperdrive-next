@@ -359,7 +359,7 @@ test('symlink(key, linkname) resolve key path', async function (t) {
 })
 
 test('watch() basic', async function (t) {
-  t.plan(4)
+  t.plan(5)
 
   const { drive } = await testenv(t.teardown)
   const buf = b4a.from('hi')
@@ -375,6 +375,7 @@ test('watch() basic', async function (t) {
     t.ok(previous instanceof Hyperdrive)
     t.is(current.version, 2)
     t.is(previous.version, 1)
+    t.alike(await current.get('/a.txt'), buf)
     break
   }
 })
