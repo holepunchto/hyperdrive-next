@@ -195,21 +195,21 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     const node = await this.entry(name, { wait: false }).catch(nullifyCatch)
 
-    if (node !== null && this.blobs !== null) {
-      return this.blobs.clear(node.value.blob, opts)
+    if (node === null || this.blobs === null) {
+      return (opts && opts.diff) ? { blocks: 0 } : null
     }
 
-    return (opts && opts.diff) ? { blocks: 0 } : null
+    return this.blobs.clear(node.value.blob, opts)
   }
 
   async clearAll (opts) {
     if (!this.opened) await this.ready()
 
-    if (this.blobs !== null) {
-      return this.blobs.core.clear(0, this.blobs.core.length, opts)
+    if (this.blobs === null) {
+      return (opts && opts.diff) ? { blocks: 0 } : null
     }
 
-    return (opts && opts.diff) ? { blocks: 0 } : null
+    return this.blobs.core.clear(0, this.blobs.core.length, opts)
   }
 
   async purge () {
