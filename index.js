@@ -193,7 +193,13 @@ module.exports = class Hyperdrive extends ReadyResource {
   async clear (name, opts) {
     if (!this.opened) await this.ready()
 
-    const node = await this.entry(name, { wait: false }).catch(nullifyCatch)
+    let node = null
+
+    try {
+      node = await this.entry(name, { wait: false })
+    } catch {
+      // do nothing, prop not available
+    }
 
     if (node === null || this.blobs === null) {
       return (opts && opts.diff) ? { blocks: 0 } : null
@@ -507,9 +513,4 @@ function makeBee (key, corestore, onwait) {
 
 function normalizePath (name) {
   return unixPathResolve('/', name)
-}
-
-function nullifyCatch (err) {
-  safetyCatch(err)
-  return null
 }
