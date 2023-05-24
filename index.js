@@ -9,9 +9,7 @@ const safetyCatch = require('safety-catch')
 const SubEncoder = require('sub-encoder')
 
 const DB_KEY_ENCODING = 'utf-8'
-const FILES_SUB = (new SubEncoder()).sub('files', {
-  keyEncoding: DB_KEY_ENCODING
-})
+const FILES_SUB = (new SubEncoder()).sub('files', DB_KEY_ENCODING)
 
 module.exports = class Hyperdrive extends ReadyResource {
   constructor (corestore, key, opts = {}) {
