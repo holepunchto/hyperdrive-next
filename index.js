@@ -253,9 +253,8 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     if (folder.endsWith('/')) folder = folder.slice(0, -1)
 
-    const enc = new SubEncoder()
-    const files = enc.sub('files', this.db.keyEncoding)
-
+    const encoder = new SubEncoder()
+    const files = encoder.sub('files', this.db.keyEncoding)
     const options = { keyEncoding: files, map: this.checkout }
 
     return this.db.watch({ gt: folder + '/', lt: folder + '0' }, options)
