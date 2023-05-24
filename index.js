@@ -259,7 +259,7 @@ module.exports = class Hyperdrive extends ReadyResource {
     const files = encoder.sub('files', this.db.keyEncoding)
     const options = { map: (snap) => this._makeCheckout(snap) }
 
-    return this.db.watch({ gt: folder + '/', lt: folder + '0' }, options)
+    return this.db.watch({ gt: files.encode(folder + '/'), lt: files.encode(folder + '0') }, options)
   }
 
   diff (length, folder, opts) {
