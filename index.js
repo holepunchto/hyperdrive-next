@@ -65,12 +65,10 @@ module.exports = class Hyperdrive extends ReadyResource {
   }
 
   checkout (len) {
-    const snapshot = typeof len === 'object' ? this.db.checkout(len.version) : this.db.checkout(len)
-
     return new Hyperdrive(this.corestore, this.key, {
       onwait: this._onwait,
       _checkout: this._checkout || this,
-      _db: snapshot,
+      _db: this.db.checkout(len),
       _files: null
     })
   }
@@ -255,7 +253,7 @@ module.exports = class Hyperdrive extends ReadyResource {
 
     const encoder = new SubEncoder()
     const files = encoder.sub('files', this.db.keyEncoding)
-    const options = { keyEncoding: files, map: (snap) => this.checkout(snap) }
+    const options = { keyEncoding: files, map: (snap) => this.checkout(snap.version) }
 
     return this.db.watch({ gt: folder + '/', lt: folder + '0' }, options)
   }
